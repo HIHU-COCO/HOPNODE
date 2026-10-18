@@ -1,0 +1,21 @@
+name: Implementation task
+description: Track a Plan task and verifiable evidence
+body:
+  - type: input
+    id: plan
+    attributes:
+      label: Plan ID and PRD F/A IDs
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope, dependencies, owned paths
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Commands, platform evidence, and blockers
+    validations:
+      required: true

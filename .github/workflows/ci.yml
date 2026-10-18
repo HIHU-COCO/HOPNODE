@@ -1,0 +1,78 @@
+name: Engineering baseline
+on:
+  push:
+    branches: [main, 'feat/**', 'poc/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  go:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.27.2'
+          cache: false
+      - run: go test ./...
+      - run: go vet ./...
+      - run: go build ./cmd/...
+      - name: Isolated Go POCs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for module in tests/pocs/*/go.mod; do
+            test -f "$module" || continue
+            (cd "$(dirname "$module")" && go test ./... && go vet ./...)
+          done
+      - name: Race detector (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./...
+          for module in tests/pocs/*/go.mod; do
+            test -f "$module" || continue
+            (cd "$(dirname "$module")" && go test -race ./...)
+          done
+      - run: python scripts/verify-ledger.py
+      - run: python -m unittest discover -s tests/pocs/network -p "test_*.py" -v
+  desktop:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26.7.0'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: '11.0.9'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Ubuntu Tauri build prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+          components: rustfmt, clippy
+      - run: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check
+      - run: cargo clippy --locked --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml

@@ -1,0 +1,27 @@
+name: Authorized real-machine integration
+on:
+  workflow_dispatch:
+    inputs:
+      environment_ready:
+        description: 'Isolated authorized test environment has been provisioned'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-22.04
+    environment: hopnode-integration
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Integration gate
+        env:
+          ENVIRONMENT_READY: ${{ inputs.environment_ready }}
+        run: |
+          if [ "$ENVIRONMENT_READY" != true ]; then
+            echo 'NOT_RUN: isolated real-machine environment was not supplied.'
+            exit 1
+          fi
+          echo 'BLOCKED: platform E2E drivers are not implemented before P05/K01. No acceptance is claimed.'
+          exit 1

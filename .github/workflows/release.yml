@@ -1,0 +1,15 @@
+name: Release acceptance gate
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check-readiness:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - run: python scripts/verify-ledger.py
+      - name: Prevent premature product release
+        run: |
+          echo 'BLOCKED: L01-L06 and A01-A27 require actual candidate packages and evidence. This baseline cannot publish a release.'
+          exit 1
