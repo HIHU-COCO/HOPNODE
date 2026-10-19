@@ -29,6 +29,7 @@ body {
 .brand-mark {
   display: grid;
   place-items: center;
+  line-height: 1;
   font-weight: 800;
   width: 34px;
   height: 34px;
