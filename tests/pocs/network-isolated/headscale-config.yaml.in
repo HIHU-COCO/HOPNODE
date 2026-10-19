@@ -1,0 +1,64 @@
+# Research template only. Replace all three tokens in a new protected directory.
+# Do not write /etc/headscale or use this with an existing database.
+server_url: "https://@P01_SERVER_FQDN@:18443"
+listen_addr: "@P01_SERVER_IPV4@:18443"
+metrics_listen_addr: ""
+grpc_listen_addr: "127.0.0.1:15443"
+grpc_allow_insecure: false
+trusted_proxies: []
+
+noise:
+  private_key_path: "@P01_ROOT@/noise.key"
+prefixes:
+  v4: "100.125.240.0/24"
+  v6: "fd7a:115c:a1e0:ff01::/64"
+  allocation: sequential
+
+derp:
+  server:
+    enabled: true
+    region_id: 999
+    region_code: p01-lan
+    region_name: HopNode temporary LAN fixture
+    verify_clients: true
+    stun_listen_addr: "@P01_SERVER_IPV4@:13478"
+    private_key_path: "@P01_ROOT@/derp.key"
+    automatically_add_embedded_derp_region: true
+    ipv4: "@P01_SERVER_IPV4@"
+  urls: []
+  paths: []
+  auto_update_enabled: false
+
+database:
+  type: sqlite
+  sqlite:
+    path: "@P01_ROOT@/db.sqlite"
+    write_ahead_log: true
+
+tls_letsencrypt_hostname: ""
+tls_cert_path: "@P01_ROOT@/tls/server.crt"
+tls_key_path: "@P01_ROOT@/tls/server.key"
+
+policy:
+  mode: file
+  path: "@P01_ROOT@/policy.hujson"
+
+dns:
+  magic_dns: false
+  base_domain: ""
+  override_local_dns: false
+  nameservers:
+    global: []
+    split: {}
+  search_domains: []
+  extra_records: []
+
+unix_socket: "@P01_ROOT@/headscale.sock"
+unix_socket_permission: "0600"
+log:
+  level: warn
+  format: json
+logtail:
+  enabled: false
+auto_update:
+  enabled: false

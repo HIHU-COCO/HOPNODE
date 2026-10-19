@@ -1,0 +1,684 @@
+[
+  {
+    "name": "error/auth",
+    "schema": "errors.schema.json",
+    "definition": "",
+    "valid": true,
+    "value": {
+      "code": "SSH_AUTH_FAILED",
+      "message": "DRAFT synthetic diagnostic",
+      "device_id": "draft-device-001",
+      "retryable": true,
+      "details": {
+        "component": "fixture",
+        "stage": "validation"
+      }
+    }
+  },
+  {
+    "name": "error/unknown_not_retryable",
+    "schema": "errors.schema.json",
+    "definition": "",
+    "valid": true,
+    "value": {
+      "code": "UNKNOWN_OUTCOME",
+      "message": "DRAFT synthetic diagnostic",
+      "device_id": "draft-device-001",
+      "retryable": false,
+      "details": {
+        "component": "fixture",
+        "stage": "validation"
+      }
+    }
+  },
+  {
+    "name": "error/unknown_retry_true",
+    "schema": "errors.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "code": "UNKNOWN_OUTCOME",
+      "message": "DRAFT synthetic diagnostic",
+      "device_id": "draft-device-001",
+      "retryable": true,
+      "details": {
+        "component": "fixture",
+        "stage": "validation"
+      }
+    }
+  },
+  {
+    "name": "error/unregistered_code",
+    "schema": "errors.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "code": "MADE_UP_SUCCESS",
+      "message": "DRAFT synthetic diagnostic",
+      "device_id": "draft-device-001",
+      "retryable": false,
+      "details": {
+        "component": "fixture",
+        "stage": "validation"
+      }
+    }
+  },
+  {
+    "name": "error/details_disallow_secret_key",
+    "schema": "errors.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "code": "SSH_AUTH_FAILED",
+      "message": "DRAFT synthetic diagnostic",
+      "device_id": "draft-device-001",
+      "retryable": false,
+      "details": {
+        "component": "fixture",
+        "stage": "validation",
+        "token": "SYNTHETIC_NOT_A_TOKEN"
+      }
+    }
+  },
+  {
+    "name": "result/succeeded",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": true,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "status": "succeeded",
+      "data": {
+        "stdout": "DRAFT",
+        "stderr": "",
+        "exit_code": 0,
+        "timed_out": false
+      },
+      "error": null
+    }
+  },
+  {
+    "name": "result/unknown",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": true,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "unknown",
+      "data": null,
+      "error": {
+        "code": "UNKNOWN_OUTCOME",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      }
+    }
+  },
+  {
+    "name": "result/accepted_is_still_running",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": true,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "running",
+      "data": {},
+      "error": null,
+      "cancellation": {
+        "requested": true,
+        "accepted": true,
+        "confirmed": false
+      }
+    }
+  },
+  {
+    "name": "result/confirmed_cancellation",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": true,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "canceled",
+      "data": {},
+      "error": {
+        "code": "CANCELED",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      },
+      "cancellation": {
+        "requested": true,
+        "accepted": true,
+        "confirmed": true,
+        "confirmed_at": "2026-10-19T00:00:00Z"
+      }
+    }
+  },
+  {
+    "name": "result/success_with_error",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "status": "succeeded",
+      "data": {
+        "stdout": "DRAFT",
+        "stderr": "",
+        "exit_code": 0,
+        "timed_out": false
+      },
+      "error": {
+        "code": "SSH_AUTH_FAILED",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      }
+    }
+  },
+  {
+    "name": "result/unknown_without_operation_id",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "task_id": "draft-task-001",
+      "status": "unknown",
+      "data": null,
+      "error": {
+        "code": "UNKNOWN_OUTCOME",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      }
+    }
+  },
+  {
+    "name": "result/unknown_retry_true",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "unknown",
+      "data": null,
+      "error": {
+        "code": "UNKNOWN_OUTCOME",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": true,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      }
+    }
+  },
+  {
+    "name": "result/unknown_cannot_be_failed",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "failed",
+      "data": null,
+      "error": {
+        "code": "UNKNOWN_OUTCOME",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      }
+    }
+  },
+  {
+    "name": "result/accepted_is_not_canceled",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "canceled",
+      "data": {},
+      "error": {
+        "code": "CANCELED",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      },
+      "cancellation": {
+        "requested": true,
+        "accepted": true,
+        "confirmed": false
+      }
+    }
+  },
+  {
+    "name": "result/confirmed_requires_accepted",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "canceled",
+      "data": {},
+      "error": {
+        "code": "CANCELED",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      },
+      "cancellation": {
+        "requested": true,
+        "accepted": false,
+        "confirmed": true,
+        "confirmed_at": "2026-10-19T00:00:00Z"
+      }
+    }
+  },
+  {
+    "name": "result/confirmed_needs_observation",
+    "schema": "core-api.schema.json",
+    "definition": "OperationResult",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "canceled",
+      "data": {},
+      "error": {
+        "code": "CANCELED",
+        "message": "DRAFT synthetic diagnostic",
+        "device_id": "draft-device-001",
+        "retryable": false,
+        "details": {
+          "component": "fixture",
+          "stage": "validation"
+        }
+      },
+      "cancellation": {
+        "requested": true,
+        "accepted": true,
+        "confirmed": true
+      }
+    }
+  },
+  {
+    "name": "task/unknown",
+    "schema": "core-api.schema.json",
+    "definition": "Task",
+    "valid": true,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "unknown",
+      "exit_code": null,
+      "timed_out": true,
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "task/unknown_not_success_exit",
+    "schema": "core-api.schema.json",
+    "definition": "Task",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001",
+      "status": "unknown",
+      "exit_code": 0,
+      "timed_out": true,
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "pagination/request",
+    "schema": "core-api.schema.json",
+    "definition": "PageRequest",
+    "valid": true,
+    "value": {
+      "page_size": 20,
+      "cursor": null
+    }
+  },
+  {
+    "name": "pagination/zero_page_size",
+    "schema": "core-api.schema.json",
+    "definition": "PageRequest",
+    "valid": false,
+    "value": {
+      "page_size": 0
+    }
+  },
+  {
+    "name": "pagination/empty_cursor",
+    "schema": "core-api.schema.json",
+    "definition": "PageRequest",
+    "valid": false,
+    "value": {
+      "cursor": ""
+    }
+  },
+  {
+    "name": "pagination/device_last_page",
+    "schema": "core-api.schema.json",
+    "definition": "DevicePage",
+    "valid": true,
+    "value": {
+      "items": [
+        {
+          "device_id": "draft-device-001",
+          "source": "manual_ssh",
+          "display_name": "DRAFT manual fixture",
+          "roles": [
+            "controller"
+          ],
+          "network_status": "unknown",
+          "ssh_status": "ready",
+          "connection_type": "unknown",
+          "agent_enabled": null,
+          "identity_status": null,
+          "last_seen_at": null,
+          "observed_at": "2026-10-19T00:00:00Z"
+        },
+        {
+          "device_id": "draft-device-002",
+          "source": "managed",
+          "display_name": "DRAFT managed fixture",
+          "roles": [
+            "agent"
+          ],
+          "network_status": "online",
+          "ssh_status": "ready",
+          "connection_type": "unknown",
+          "agent_enabled": true,
+          "identity_status": "active",
+          "last_seen_at": "2026-10-19T00:00:00Z",
+          "observed_at": "2026-10-19T00:00:00Z"
+        }
+      ],
+      "next_cursor": null,
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "pagination/device_more",
+    "schema": "core-api.schema.json",
+    "definition": "DevicePage",
+    "valid": true,
+    "value": {
+      "items": [],
+      "next_cursor": "DRAFT-cursor",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "device/manual_has_no_agent_heartbeat",
+    "schema": "core-api.schema.json",
+    "definition": "Device",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "source": "manual_ssh",
+      "display_name": "DRAFT manual fixture",
+      "roles": [
+        "controller"
+      ],
+      "network_status": "unknown",
+      "ssh_status": "ready",
+      "connection_type": "unknown",
+      "agent_enabled": null,
+      "identity_status": null,
+      "last_seen_at": "2026-10-19T00:00:00Z",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "device/managed_needs_boolean_state",
+    "schema": "core-api.schema.json",
+    "definition": "Device",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-002",
+      "source": "managed",
+      "display_name": "DRAFT managed fixture",
+      "roles": [
+        "agent"
+      ],
+      "network_status": "online",
+      "ssh_status": "ready",
+      "connection_type": "unknown",
+      "agent_enabled": null,
+      "identity_status": "active",
+      "last_seen_at": "2026-10-19T00:00:00Z",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "capabilities/result",
+    "schema": "core-api.schema.json",
+    "definition": "Capabilities",
+    "valid": true,
+    "value": {
+      "versions": {
+        "app_version": "0.0.0-DRAFT",
+        "ipc_major": 0,
+        "ipc_minor": 0,
+        "store_schema_version": 0,
+        "mcp_tool_schema_version": "DRAFT",
+        "directory_api_version": "DRAFT"
+      },
+      "ipc_compatibility": [
+        {
+          "major": 0,
+          "min_minor": 0,
+          "max_minor": 0
+        }
+      ],
+      "capabilities": [
+        {
+          "name": "managed.revoke",
+          "availability": "unavailable",
+          "reason_code": "DRAFT_NOT_IMPLEMENTED"
+        }
+      ]
+    }
+  },
+  {
+    "name": "request/capabilities",
+    "schema": "core-api.schema.json",
+    "definition": "CoreRequest",
+    "valid": true,
+    "value": {
+      "request_id": "draft-request-001",
+      "ipc_major": 0,
+      "ipc_minor": 0,
+      "method": "GetCapabilities",
+      "params": {
+        "client_app_version": "0.0.0-DRAFT"
+      }
+    }
+  },
+  {
+    "name": "request/devices",
+    "schema": "core-api.schema.json",
+    "definition": "CoreRequest",
+    "valid": true,
+    "value": {
+      "request_id": "draft-request-001",
+      "ipc_major": 0,
+      "ipc_minor": 0,
+      "method": "ListDevices",
+      "params": {
+        "page_size": 10
+      }
+    }
+  },
+  {
+    "name": "request/cancel_task",
+    "schema": "core-api.schema.json",
+    "definition": "CoreRequest",
+    "valid": true,
+    "value": {
+      "request_id": "draft-request-001",
+      "ipc_major": 0,
+      "ipc_minor": 0,
+      "method": "CancelTask",
+      "params": {
+        "device_id": "draft-device-001",
+        "task_id": "draft-task-001",
+        "operation_id": "draft-operation-001"
+      }
+    }
+  },
+  {
+    "name": "request/query_operation",
+    "schema": "core-api.schema.json",
+    "definition": "CoreRequest",
+    "valid": true,
+    "value": {
+      "request_id": "draft-request-001",
+      "ipc_major": 0,
+      "ipc_minor": 0,
+      "method": "GetOperation",
+      "params": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001"
+      }
+    }
+  },
+  {
+    "name": "request/cancel_missing_target",
+    "schema": "core-api.schema.json",
+    "definition": "CoreRequest",
+    "valid": false,
+    "value": {
+      "request_id": "draft-request-001",
+      "ipc_major": 0,
+      "ipc_minor": 0,
+      "method": "CancelTask",
+      "params": {
+        "task_id": "draft-task-001",
+        "operation_id": "draft-operation-001"
+      }
+    }
+  },
+  {
+    "name": "request/unfinished_method_not_supported",
+    "schema": "core-api.schema.json",
+    "definition": "CoreRequest",
+    "valid": false,
+    "value": {
+      "request_id": "draft-request-001",
+      "ipc_major": 0,
+      "ipc_minor": 0,
+      "method": "StartService",
+      "params": {}
+    }
+  },
+  {
+    "valid": false,
+    "value": {
+      "timed_out": false,
+      "device_id": "draft-device-001",
+      "task_id": "draft-task-001",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "exit_code": null,
+      "operation_id": "draft-operation-001",
+      "status": "canceled"
+    },
+    "name": "task/canceled_without_confirmation",
+    "schema": "core-api.schema.json",
+    "definition": "Task"
+  },
+  {
+    "valid": true,
+    "value": {
+      "task_id": "draft-task-001",
+      "cancellation": {
+        "confirmed": true,
+        "confirmed_at": "2026-10-19T00:00:00Z",
+        "accepted": true,
+        "requested": true
+      },
+      "device_id": "draft-device-001",
+      "exit_code": null,
+      "status": "canceled",
+      "timed_out": false,
+      "observed_at": "2026-10-19T00:00:00Z",
+      "operation_id": "draft-operation-001"
+    },
+    "name": "task/canceled_confirmed",
+    "schema": "core-api.schema.json",
+    "definition": "Task"
+  },
+  {
+    "valid": false,
+    "value": {
+      "task_id": "draft-task-001",
+      "cancellation": {
+        "confirmed": true,
+        "confirmed_at": "2026-10-19T00:00:00Z",
+        "accepted": true,
+        "requested": true
+      },
+      "device_id": "draft-device-001",
+      "exit_code": null,
+      "status": "running",
+      "timed_out": false,
+      "observed_at": "2026-10-19T00:00:00Z",
+      "operation_id": "draft-operation-001"
+    },
+    "name": "task/confirmed_cancel_cannot_still_run",
+    "schema": "core-api.schema.json",
+    "definition": "Task"
+  }
+]

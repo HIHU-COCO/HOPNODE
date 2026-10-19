@@ -1,0 +1,20 @@
+[package]
+name = "hopnode-desktop"
+version = "0.1.0"
+description = "HopNode thin desktop IPC shell (P04)"
+authors = ["HIHU-COCO <3082310342@qq.com>"]
+edition = "2021"
+rust-version = "1.90"
+
+[lib]
+name = "hopnode_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.3", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.3", features = ["tray-icon", "image-png"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["net", "time", "io-util"] }

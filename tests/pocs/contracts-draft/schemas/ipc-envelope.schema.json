@@ -1,0 +1,498 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hopnode.invalid/draft/ipc-envelope.schema.json",
+  "title": "DRAFT HopNode six-method IPC envelope candidate",
+  "$comment": "DRAFT by HIHU-COCO, 2026-10-19. Offline JSON and pair validation only. No frozen framing, transport, authorization or business implementation. Original OperationResult.data remains untyped; see envelope-cases/README.md.",
+  "oneOf": [
+    {
+      "$ref": "core-api.schema.json#/$defs/CoreRequest"
+    },
+    {
+      "$ref": "#/$defs/Response"
+    }
+  ],
+  "$defs": {
+    "Response": {
+      "type": "object",
+      "properties": {
+        "message_type": {
+          "const": "response"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "$ref": "core-api.schema.json#/$defs/ID"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "business_error",
+            "protocol_error"
+          ]
+        },
+        "data": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "errors.schema.json"
+            },
+            {
+              "$ref": "#/$defs/ProtocolError"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "task_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "message_type",
+        "request_id",
+        "method",
+        "outcome",
+        "data",
+        "error"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Success"
+        },
+        {
+          "$ref": "#/$defs/BusinessFailure"
+        },
+        {
+          "$ref": "#/$defs/ProtocolFailure"
+        }
+      ]
+    },
+    "Success": {
+      "properties": {
+        "request_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "method": {
+          "enum": [
+            "GetCapabilities",
+            "ListDevices",
+            "GetTask",
+            "CancelTask",
+            "GetOperation",
+            "CancelOperation"
+          ]
+        },
+        "outcome": {
+          "const": "success"
+        },
+        "error": {
+          "type": "null"
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "operation_id"
+                ]
+              },
+              {
+                "required": [
+                  "task_id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "GetCapabilities"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "core-api.schema.json#/$defs/Capabilities"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "ListDevices"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "core-api.schema.json#/$defs/DevicePage"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "GetTask"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "core-api.schema.json#/$defs/Task"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "CancelTask"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "#/$defs/CancelTaskResult"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "GetOperation"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "core-api.schema.json#/$defs/OperationResult"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "CancelOperation"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "#/$defs/CancelOperationResult"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "BusinessFailure": {
+      "properties": {
+        "request_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "method": {
+          "enum": [
+            "GetCapabilities",
+            "ListDevices",
+            "GetTask",
+            "CancelTask",
+            "GetOperation",
+            "CancelOperation"
+          ]
+        },
+        "outcome": {
+          "const": "business_error"
+        },
+        "data": {
+          "type": "null"
+        },
+        "error": {
+          "$ref": "errors.schema.json"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "GetTask"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "task_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "CancelTask"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "task_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "GetOperation"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "operation_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "CancelOperation"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "operation_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "GetCapabilities"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "operation_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "task_id"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "ListDevices"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "operation_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "task_id"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "ProtocolFailure": {
+      "properties": {
+        "outcome": {
+          "const": "protocol_error"
+        },
+        "data": {
+          "type": "null"
+        },
+        "error": {
+          "$ref": "#/$defs/ProtocolError"
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "operation_id"
+                ]
+              },
+              {
+                "required": [
+                  "task_id"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ProtocolError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "PARSE_ERROR",
+            "INVALID_REQUEST",
+            "UNKNOWN_METHOD",
+            "INVALID_PARAMS",
+            "IPC_VERSION_UNSUPPORTED"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "CancelTaskResult": {
+      "allOf": [
+        {
+          "$ref": "core-api.schema.json#/$defs/Task"
+        },
+        {
+          "required": [
+            "cancellation"
+          ],
+          "properties": {
+            "cancellation": {
+              "properties": {
+                "requested": {
+                  "const": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "CancelOperationResult": {
+      "allOf": [
+        {
+          "$ref": "core-api.schema.json#/$defs/OperationResult"
+        },
+        {
+          "required": [
+            "cancellation"
+          ],
+          "properties": {
+            "cancellation": {
+              "properties": {
+                "requested": {
+                  "const": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

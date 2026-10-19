@@ -1,0 +1,258 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DRAFT HopNode Directory candidate fragments",
+    "version": "0.0.0-DRAFT",
+    "description": "Design 7.3 inventory. Only query/detail and editable metadata bodies are candidates. This document does not freeze K01/G1, implement endpoints, or establish anonymous access."
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "servers": [
+    {
+      "url": "https://directory.invalid",
+      "description": "Reserved, non-deployment placeholder; never contacted by tests."
+    }
+  ],
+  "x-hopnode-draft": true,
+  "x-hopnode-author": "HIHU-COCO; 2026-10-19",
+  "x-hopnode-authentication-todo": "Deployment authorization and device-bound identity are required by Design; credential format, securitySchemes, scopes and HTTP mappings remain P01/K04 decisions. Omitted security is unresolved, not permission for anonymous access.",
+  "paths": {
+    "/api/v1/enrollments": {
+      "post": {
+        "operationId": "draftCreateEnrollment",
+        "summary": "DRAFT inventory: create one-time enrollment material",
+        "x-hopnode-draft-state": "inventory-only",
+        "x-hopnode-todo": "TODO P01/K04: admin deployment authorization, payload, protected return channel, expiry and one-time-use rules; no token examples.",
+        "responses": {
+          "default": {
+            "description": "DRAFT inventory only. Request/response and authorization are unresolved; no behavior is implemented."
+          }
+        }
+      }
+    },
+    "/api/v1/devices/register": {
+      "post": {
+        "operationId": "draftRegisterDevice",
+        "summary": "DRAFT inventory: register a managed device",
+        "x-hopnode-draft-state": "inventory-only",
+        "x-hopnode-todo": "TODO P01/K04: device identity proof, protected enrollment input, replay rejection and revoked-identity recovery; do not reuse old credentials.",
+        "responses": {
+          "default": {
+            "description": "DRAFT inventory only. Request/response and authorization are unresolved; no behavior is implemented."
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{id}/heartbeat": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Stable target identity; maps to device_id. Shape remains a DRAFT candidate.",
+          "schema": {
+            "$ref": "directory.schema.json#/$defs/DevicePathParameters/properties/id"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "draftHeartbeat",
+        "summary": "DRAFT inventory: report own device state",
+        "x-hopnode-draft-state": "inventory-only",
+        "x-hopnode-todo": "TODO P01/K04: bind authenticated device to id, authorization version and revocation propagation; configured heartbeat thresholds are not guarantees.",
+        "responses": {
+          "default": {
+            "description": "DRAFT inventory only. Request/response and authorization are unresolved; no behavior is implemented."
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "operationId": "draftListDirectoryDevices",
+        "summary": "DRAFT managed device page",
+        "x-hopnode-draft-state": "schema-fragment",
+        "description": "Requires authorized deployment visibility; no manual_ssh aggregation here. status means network_status. Cursor ownership/context, default/max limits and snapshots remain TODO.",
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "directory.schema.json#/$defs/ListDevicesQuery/properties/page_size"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "directory.schema.json#/$defs/ListDevicesQuery/properties/cursor"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "directory.schema.json#/$defs/ListDevicesQuery/properties/status"
+            }
+          },
+          {
+            "name": "os",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "directory.schema.json#/$defs/ListDevicesQuery/properties/os"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "directory.schema.json#/$defs/ListDevicesQuery/properties/name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DRAFT candidate success body; not a deployed endpoint.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "directory.schema.json#/$defs/DevicePage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "DRAFT TODO: HTTP error status mapping is unresolved; body candidate only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "errors.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Stable target identity; maps to device_id. Shape remains a DRAFT candidate.",
+          "schema": {
+            "$ref": "directory.schema.json#/$defs/DevicePathParameters/properties/id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "draftGetDirectoryDevice",
+        "summary": "DRAFT managed device detail",
+        "x-hopnode-draft-state": "schema-fragment",
+        "description": "Authorization visibility and absent-versus-hidden error mapping remain TODO.",
+        "responses": {
+          "200": {
+            "description": "DRAFT candidate success body; not a deployed endpoint.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "directory.schema.json#/$defs/DirectoryDevice"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "DRAFT TODO: HTTP error status mapping is unresolved; body candidate only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "errors.schema.json"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "draftUpdateDirectoryMetadata",
+        "summary": "DRAFT display name and note only",
+        "x-hopnode-draft-state": "schema-fragment",
+        "description": "Only display_name/note are editable. No identity/agent state change. Conditional update/version policy and operation correlation remain TODO.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "directory.schema.json#/$defs/UpdateDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DRAFT candidate success body; not a deployed endpoint.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "directory.schema.json#/$defs/DirectoryDevice"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "DRAFT TODO: HTTP error status mapping is unresolved; body candidate only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "errors.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{id}/disable": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Stable target identity; maps to device_id. Shape remains a DRAFT candidate.",
+          "schema": {
+            "$ref": "directory.schema.json#/$defs/DevicePathParameters/properties/id"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "draftDisableManagedDevice",
+        "summary": "DRAFT inventory: request managed disable",
+        "x-hopnode-draft-state": "inventory-only",
+        "x-hopnode-todo": "TODO P01/P04/K04: accepted versus enforced state, reject new HopNode operations, credential/session revocation evidence and recovery; do not equate a Directory flag with completion.",
+        "responses": {
+          "default": {
+            "description": "DRAFT inventory only. Request/response and authorization are unresolved; no behavior is implemented."
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "draftDirectoryHealth",
+        "summary": "DRAFT inventory: minimal health",
+        "x-hopnode-draft-state": "inventory-only",
+        "x-hopnode-todo": "TODO deployment decision: visibility and minimal health body; must not expose device lists, credentials or configuration. No anonymous-access policy is chosen.",
+        "responses": {
+          "default": {
+            "description": "DRAFT inventory only. Request/response and authorization are unresolved; no behavior is implemented."
+          }
+        }
+      }
+    }
+  }
+}

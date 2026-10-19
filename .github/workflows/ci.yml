@@ -43,8 +43,62 @@ jobs:
             test -f "$module" || continue
             (cd "$(dirname "$module")" && go test -race ./...)
           done
+      - name: Native Windows POC process ownership
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $taskCore = Join-Path $env:RUNNER_TEMP 'hopnode-p04-core.exe'
+          Push-Location tests/pocs/desktop-service
+          try {
+            go build -o $taskCore .
+            if ($LASTEXITCODE -ne 0) { throw 'POC Core build failed' }
+          } finally { Pop-Location }
+          $env:HOPNODE_POC_CORE_EXE = $taskCore
+          Push-Location tests/pocs/service-lifecycle
+          try {
+            go test -timeout 30s -count=1 -run '^TestOwnedChildNativeLifecycle$' -v ./...
+            if ($LASTEXITCODE -ne 0) { throw 'Native POC process ownership test failed' }
+          } finally { Pop-Location }
+      - name: Disposable Windows SCM lifecycle
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scmPocBuildDir = Join-Path $env:RUNNER_TEMP ('hopnode-p04-scm-' + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $scmPocBuildDir | Out-Null
+          $scmPocCore = Join-Path $scmPocBuildDir 'hopnodectl-poc.exe'
+          $scmPocHost = Join-Path $scmPocBuildDir 'hopnode-service-poc.exe'
+          go -C tests/pocs/desktop-service build -mod=readonly -trimpath -o $scmPocCore .
+          if ($LASTEXITCODE -ne 0) { throw 'Core POC build failed' }
+          go -C tests/pocs/service-lifecycle build -mod=readonly -trimpath -o $scmPocHost .
+          if ($LASTEXITCODE -ne 0) { throw 'SCM host build failed' }
+          foreach ($scmPocBinary in @($scmPocCore, $scmPocHost)) {
+            if (-not [IO.Path]::IsPathFullyQualified($scmPocBinary) -or
+                -not (Test-Path -LiteralPath $scmPocBinary -PathType Leaf)) {
+              throw 'SCM CI requires both built absolute executable paths'
+            }
+          }
+          $previousScmGate = $env:HOPNODE_POC_RUN_SCM
+          $previousScmHost = $env:HOPNODE_POC_SCM_HOST_EXE
+          $previousScmCore = $env:HOPNODE_POC_CORE_EXE
+          try {
+            $env:HOPNODE_POC_RUN_SCM = '1'
+            $env:HOPNODE_POC_SCM_HOST_EXE = $scmPocHost
+            $env:HOPNODE_POC_CORE_EXE = $scmPocCore
+            Push-Location tests/pocs/service-lifecycle
+            try {
+              go test -mod=readonly -timeout 5m -count=1 -run '^TestSCMNativeLifecycle$' -v ./...
+              if ($LASTEXITCODE -ne 0) { throw 'SCM lifecycle or owned cleanup failed' }
+            } finally { Pop-Location }
+          } finally {
+            $env:HOPNODE_POC_RUN_SCM = $previousScmGate
+            $env:HOPNODE_POC_SCM_HOST_EXE = $previousScmHost
+            $env:HOPNODE_POC_CORE_EXE = $previousScmCore
+          }
       - run: python scripts/verify-ledger.py
       - run: python -m unittest discover -s tests/pocs/network -p "test_*.py" -v
+      - run: python tests/pocs/desktop-service/test-user-unit.py
   desktop:
     runs-on: ubuntu-22.04
     steps:
@@ -68,7 +122,10 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Ubuntu Tauri build prerequisites
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf python3-gi gir1.2-glib-2.0
+      - name: Gio desktop child ownership regression
+        if: runner.os == 'Linux'
+        run: /usr/bin/python3 tests/pocs/desktop-service/test-desktop-entry.py
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
         with:
           toolchain: '1.99.1'
@@ -76,3 +133,21 @@ jobs:
       - run: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check
       - run: cargo clippy --locked --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
       - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        if: runner.os == 'Linux'
+        with:
+          node-version: '26.7.0'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        if: runner.os == 'Linux'
+        with:
+          version: '11.0.9'
+      - name: Ubuntu GUI engineering package smoke check
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm --dir apps/desktop tauri build --debug --bundles deb
+          for package in apps/desktop/src-tauri/target/debug/bundle/deb/*.deb; do
+            python tests/pocs/desktop-service/validate-deb.py "$package"
+          done
