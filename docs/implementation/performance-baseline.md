@@ -2,7 +2,9 @@
 
 日期：2026-10-19；作者：HIHU-COCO。关联 P05 / K04 / I12 / A25。状态：BLOCKED，未进行产品性能验收。
 
-现有 Windows 11 x64 与 WSL Ubuntu 22.04 只用于工程/隔离 POC；没有不同网络和强制 DERP 的授权端点，也没有产品 Directory、调度器或 task-runner。10 MiB loopback SFTP 成功仅证明该次文件完整性，不推导公网速率或 1 GB 能力。
+已有 Windows 11、WSL Ubuntu 22.04 和授权 LAN Ubuntu Desktop 22.04 的局部工程/POC证据；没有不同网络和强制 DERP 的授权端点，也没有产品 Directory、调度器或 task-runner。10 MiB隔离及LAN SFTP成功仅证明该次文件完整性，不推导公网速率或1 GB能力。
+
+已授权的条件路线允许K04先批准测量标准及可合理确定的阈值；缺少实测基础的数值继续列为候选，由集成负责人记录冻结条件并在I12前收敛。下表未签收数值不生效，A25仍BLOCKED/NOT_RUN；本轮未产生新性能样本或验收结论。
 
 | 测量 | 试验规模与采样 | 阈值草案 / 冻结条件 |
 | --- | --- | --- |

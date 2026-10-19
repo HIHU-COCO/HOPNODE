@@ -6,6 +6,8 @@
 
 依据：[PRD](PRD.md)、[技术设计](Design.md)、[实施计划](Plan.md)、[执行规则](AGENTS.md)。实际进度与缺失条件见 [执行台账](docs/implementation/status.md)、[测试环境](docs/implementation/test-environment.md)、[风险](docs/implementation/risks.md)。
 
+2026-10-19 已按用户授权调整施工顺序，见 [ADR-0001](docs/decisions/ADR-0001-v1-stack.md)：先串行完成 K01→K02→K03→K04，G2通过后按依赖实现六条业务线，同时补齐环境和原POC实测。当前K01 READY、契约尚未冻结，正式验收仍0/27；全平台与发布门槛保留。
+
 ## 开发环境
 
 - Go 1.27.2；Rust 1.99.1（rustfmt/clippy）；Node 26.7.0；pnpm 11.0.9。
