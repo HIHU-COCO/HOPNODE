@@ -99,3 +99,58 @@ prepare 实际下载固定版本的两个包并成功校验 chroot 配置，退�
 后续需补 Windows / Ubuntu 两种系统 sshd 的密码与私钥认证、命令、PTY、路径列举、10 MiB 往返和 Host Key 错误证据，调查两平台后台断线行为，再交由 P05 联合评审。生产 R01 / R06 还需完善凭据库、用户目录和 SSH 配置兼容矩阵。
 
 本报告不修改状态总表，也不把 P02 或 A20 / A24 标为 DONE / PASS。Git commit 由完成该子任务的提交及主线集成记录追溯；未创建或推送 PR。
+
+## 新授权 LAN Ubuntu 22.04 目标测试计划（尚未连接）
+
+2026-10-19 用户已授权主代理通过 SSH 连接一台局域网 Ubuntu 22.04 查看环境。当前子任务仅审阅本机 POC CLI 并准备流程，未连接该目标，以下全部为 NOT_RUN。主代理负责独立 Host Key 核验、确定授权身份与安全认证注入；只有收到其已核验的专用 known-hosts 和认证接入方式后才执行。目标地址、真实用户名、凭据和原始运行日志保留在忽略的本地交换目录，报告仅记录脱敏结果。
+
+### 只读 inventory
+
+先运行一条短命令确认当前身份、系统和现成工具，每项单独标记，允许预期的缺包/无 systemd 状态，不因它们直接推断平台不支持：
+
+```sh
+printf 'uid='; id -u
+printf 'gid='; id -g
+uname -srmo
+cat /etc/os-release
+getconf LONG_BIT
+printf 'pid1='; cat /proc/1/comm
+command -v mktemp
+command -v stat
+command -v rmdir
+command -v tty
+command -v stty
+if command -v dpkg-query >/dev/null 2>&1; then
+  dpkg-query -W -f='${binary:Package}\t${Version}\n' openssh-server 2>/dev/null || true
+fi
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl --version | head -n 1
+  systemctl is-active ssh 2>/dev/null || true
+fi
+```
+
+本步骤不读取用户文件、SSH 配置、密钥、网络配置或完整环境变量，不查询私有 IP、主机名、服务日志或其他设备。systemctl 仅查询，不启动/停止/启用服务；不执行 sudo、apt 安装或远端配置修改。
+
+### 命令、PTY 与临时数据
+
+所有调用复用已核验的独立 known-hosts，认证只在进程环境或明确指定的临时私钥中提供；不使用默认 SSH 文件，也不自动批准新指纹。既有 CLI 支持环境密码及口令私钥、指定 Host/端口/用户、`-command`、`-pty`、`-timeout` 与 `-round-trip-parent`，可直接执行以下步骤：
+
+| 顺序 | 操作与范围 | 判据与证据 |
+| --- | --- | --- |
+| 1 | 普通 `whoami`，只读确认认证后的身份 | stdout 非空、exit 0；报告隐去真实账号 |
+| 2 | `printf 'p02-out\n'; printf 'p02-err\n' >&2; exit 7`，无 PTY | stdout / stderr 分离、exit 7；CLI 预期以错误退出，区别于测试失败 |
+| 3 | `-pty -command 'tty; stty size'` | 分配真实 PTY，返回终端路径及 `24 80`；PTY 下流合并属于正常终端语义 |
+| 4 | 在明确授权的 `/tmp` 执行 `umask 077; mktemp -d /tmp/hopnode-p02-20261019-XXXXXXXX` | 返回唯一新父目录；将路径保留在本地测试状态中；验证路径前缀、非 symlink、归属当前 UID、mode 700 |
+| 5 | `-command whoami -round-trip-parent <步骤4新父目录> -timeout 30s` | 探针仅在该父目录下创建随机子目录，10,485,760 字节中文/空格文件往返，原始字节一致、列举及清理成功才输出 PASS |
+| 6 | 可选再以 `-pty` 重复步骤 5 | 分别记录普通命令与 PTY 情况，不据此宣称交互输入/resize 完成 |
+| 7 | 验证同一唯一父目录仍归属本次测试且为空，执行 `rmdir -- <该父目录>` | 仅删除空目录；若非空或归属/路径不符则保留现场，不递归删除、不清扫其他同前缀目录 |
+
+真实目标不做错误密码探测，避免触发账户锁定；未知/变化 Host Key 的回归测试使用专用本地合成 known-hosts 或原协议夹具，不改变远端 Host Key。该轮不运行后台守护进程、不发起系统注销、不重启、不撤销真实 SSH 密钥；远端进程树终止和持久化任务仍单独 NOT_RUN。
+
+### GUI、systemd 与软件包条件的后续判定
+
+若需补 Ubuntu GUI 测试，可只读查询是否有桌面会话入口、GTK / WebKitGTK 4.1 包及可用显示会话；SSH 内 `$DISPLAY` 为空不能证明机器没有 GUI。实际 GUI 验收仍要求可交互桌面会话、安装包、桌面菜单启动和真实 IPC，须由主代理按对应 P04 范围安排。
+
+PID 1 为 systemd、存在 systemctl 只说明具备查询条件；服务安装/启停、写入 `/etc/systemd/system`、daemon-reload 或 sudo 授权不是本轮测试的一部分。软件包验证先查询架构及依赖版本；未来 `.deb` 可先本地或只读地用 `dpkg-deb --info/--contents` 检查，安装、升级、卸载须有明确授权及隔离数据策略。
+
+这台目标若完成上述流程，只能补充“独立 Ubuntu 22.04 目标、Windows 客户端、LAN SSH/SFTP/PTY”的局部真实证据；不能标记 Ubuntu 24.04、Ubuntu GUI/Server 安装、跨网络、NAT 穿透或 DERP 验收通过。
