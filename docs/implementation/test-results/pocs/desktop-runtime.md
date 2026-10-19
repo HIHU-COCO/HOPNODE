@@ -102,6 +102,8 @@
 
 新增可选 `--installed-desktop` 模式，用户授权下由集成负责人独立安装/卸载包，普通用户 runner 仅负责核验安装文件哈希并经真实 Gio desktop-entry 启动、隔离及复用五项检查。`python3 test-desktop-entry.py` 在本地 WSL Ubuntu 22.04 实际 PASS：1 个真实 Gio sleep fixture 生命周期测试，确认新 session/group、PID callback、精确环境与组回收；此测试没有 GUI 验收含义。安装模式远端运行及卸载结果待集成负责人执行后另记，不由前述暂存两轮推断。
 
+审查发现此前 user-unit runner 在 `systemd-run` 正常返回后才登记清理，若单元已创建但父命令异常，可能漏 stop。已改为启动前创建生命周期账本，finally 对独有 UUID 单元 stop 并独立读取状态，未核验停止则 FAIL/保留 stage。`python3 test-user-unit.py` 实际 3 passed：模拟创建成功但父命令超时后仍执行 stop；stop 失败且仍 active 不授权清理；stop 后查询超时也不授权清理。七份 Python `ast.parse` 与 `git diff --check` 退出 0。本次是失败路径回归，不覆盖或撤销此前两轮真实成功路径证据。
+
 本表只记录实际运行，实际运行用户名未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
 
 | 平台/验收 | 状态 | 原因 |

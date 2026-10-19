@@ -63,7 +63,7 @@ processes = []
 streams = []
 group_cleanup = {}
 unit = "hopnode-p04-" + uuid.uuid4().hex + ".service" if args.user_unit else None
-unit_started = False
+unit_controller = None
 manifest = {"uid": uid, "runner_pid": os.getpid(), "stage": str(stage), "process_groups": [], "transient_user_unit": unit}
 with open(stage / "owned-processes.json", "x", encoding="utf-8") as output:
     json.dump(manifest, output)
@@ -232,10 +232,11 @@ try:
     core_binary.chmod(0o700)
     if unit:
         command = ["systemd-run", "--user", "--unit=" + unit, "--collect", "--property=RuntimeMaxSec=180", "--property=KillMode=control-group", "--setenv=HOPNODE_POC_ENDPOINT=" + environment["HOPNODE_POC_ENDPOINT"], "--setenv=HOPNODE_POC_AUDIT_FILE=" + core_environment["HOPNODE_POC_AUDIT_FILE"], "/usr/bin/env", "-u", "DISPLAY", "-u", "WAYLAND_DISPLAY", "-u", "XAUTHORITY", str(core_binary), "serve"]
-        started = run(command)
-        if started.returncode:
-            raise RuntimeError("Isolated user transient unit could not start; no system unit was changed")
-        unit_started = True
+        spec = importlib.util.spec_from_file_location("hopnode_user_unit", Path(__file__).with_name("linux-user-unit.py"))
+        unit_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(unit_module)
+        unit_controller = unit_module.OwnedUserUnit(unit, run)
+        unit_controller.start(command)
         core_pid = int(run(["systemctl", "--user", "show", unit, "-p", "MainPID", "--value"]).stdout.strip())
         report["core_unit"] = unit
     else:
@@ -293,13 +294,9 @@ finally:
             stop_owned(process)
         except Exception as error:
             report["cleanup"]["process_error"] = type(error).__name__
-    if unit_started:
+    if unit_controller is not None:
         try:
-            stopped = run(["systemctl", "--user", "stop", unit])
-            state_result = run(["systemctl", "--user", "show", unit, "-p", "MainPID", "-p", "ActiveState", "-p", "LoadState"])
-            unit_state = dict(line.split("=", 1) for line in state_result.stdout.splitlines() if "=" in line)
-            report["cleanup"]["user_unit_state"] = {key: unit_state.get(key, "") for key in ("MainPID", "ActiveState", "LoadState")}
-            report["cleanup"]["owned_user_unit_stopped"] = (unit_state.get("LoadState") == "not-found" and unit_state.get("MainPID", "0") == "0") or (unit_state.get("MainPID") == "0" and unit_state.get("ActiveState") in ("inactive", "failed"))
+            report["cleanup"].update(unit_controller.stop_and_verify())
         except Exception as error:
             report["cleanup"]["owned_user_unit_stopped"] = False
             report["cleanup"]["user_unit_error"] = type(error).__name__

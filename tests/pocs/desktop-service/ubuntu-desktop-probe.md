@@ -53,6 +53,8 @@ python3 linux-desktop-stage.py \
   --user-unit
 ```
 
+user-unit 模式须额外上传同目录 `linux-user-unit.py`。生命周期对象在调用 `systemd-run` 前即登记；即使命令超时、非零或抛异常，也会对该唯一 UUID 单元执行 stop，再独立查询 MainPID/ActiveState/LoadState。无法核验停止时 FAIL 并保留 stage，不以启动命令没有正常返回推断单元不存在。`python3 test-user-unit.py` 注入「单元已创建但父启动命令超时」、停止失败后仍 active、停止后查询超时三种故障，实际 3 测试 PASS；这些故障回归不创建真实单元，也不替代上述真机成功路径。
+
 输出只有检查状态、私有证据目录和清理结果；没有完整会话环境、用户名、UI 文本、地址或凭据。成功会留下 `report.json`、可选 `ui-accessibility.json`、`ipc-audit.jsonl` 和本次私有日志。目录位置是证据索引，不代表 GUI 已通过全部验收。
 
 ## 用户授权临时安装后的真实 desktop-entry 模式
