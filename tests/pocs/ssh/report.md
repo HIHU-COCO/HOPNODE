@@ -58,6 +58,8 @@ go run . -host 127.0.0.1 -port 22476 -user fixture `
 
 这证明 Windows Go 客户端到 Ubuntu 真实 OpenSSH 的指定私钥认证、命令、PTY 分配、中文/空格文件路径、目录列举、10 MiB 二进制往返和清理通过。它是同一 Windows 主机上的 WSL / chroot 回环测试，不是独立 Ubuntu Desktop / Server 安装或跨网络验收；尚无真实密码登录或后台任务生命周期结论。
 
+上述成功方法已整理为 [`openssh-fixture.sh`](openssh-fixture.sh) 的 prepare / run 流程，使用固定版本下载及唯一原生 chroot、独立账号文件与 devpts；停止和卸载步骤见 README，保留数据、不自动终止进程。新增脚本已实际通过 `bash -n`；非 root 执行返回错误；root 对正在使用的 22476 端口执行 prepare 被拒绝，并确认指定的新交换目录没有创建。尚未重新运行整合脚本的完整 prepare / run 流程，此项不计作新的一次 OpenSSH E2E。
+
 ## 真机 / 外部系统矩阵
 
 | 环境 / 项目 | 状态 | 缺失条件或限制 |

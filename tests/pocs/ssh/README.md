@@ -15,6 +15,47 @@ go vet ./...
 
 自动测试只监听 `127.0.0.1` 的随机端口，使用临时生成的 SSH 主机/客户端密钥与合成密码，退出时关闭监听器和连接。SFTP 文件放在测试临时目录，包含中文、空格、二进制、空文件和 10 MiB 数据校验。`ssh -G -F <临时配置>` 仅用于比对基础配置解析，不连接任何主机。它们属于协议夹具测试，不能替代系统 OpenSSH Server 或跨网络验收。
 
+## 复现 Ubuntu 真实 OpenSSH 夹具
+
+[`openssh-fixture.sh`](openssh-fixture.sh) 整理自本次实际成功的 WSL Ubuntu 22.04 隔离方法。准备阶段须在 Ubuntu 22.04 amd64 以 root 执行，依赖已存在的 `apt-get`、`dpkg-deb`、`ssh-keygen`、`bash`、`ldd`、`mount`、`mknod`、`ss` 等工具，以及允许 chroot / devpts 挂载的环境。脚本仅下载并解压 `openssh-server=1:8.9p1-3ubuntu0.18` 与 `libwrap0=7.6.q-31build2`，保留包版本和 SHA256 证据；固定版本从当前 apt 源不可获取时会明确失败，保留现场。它不安装包、注册主机服务或添加主机账号。
+
+显式指定一个**不存在**的交换目录，父目录须已存在。WSL 下可以使用仓库根 `.tools/` 中的新目录，从 Windows Go 客户端读取临时客户端私钥；它继承所在 Windows 文件系统的 ACL。原生 Linux 交换目录也可用。主机私钥保存在原生 `/var/tmp/hopnode-p02-jail-XXXXXXXX` 的 `0600` 文件中，满足 sshd 权限检查。两者都不应加入 Git；仓库根 `.tools/` 已忽略。
+
+```bash
+# Ubuntu / WSL 终端；替换 <repo> 为当前仓库在该 Linux 环境的绝对路径。
+sudo bash <repo>/tests/pocs/ssh/openssh-fixture.sh prepare <repo>/.tools/p02-repro-new 22477
+sudo bash <repo>/tests/pocs/ssh/openssh-fixture.sh run <repo>/.tools/p02-repro-new
+```
+
+默认端口为 `22476`；示例用 `22477` 便于已有夹具继续运行。端口必须空闲且仅绑定 `127.0.0.1`。`run` 在前台执行；保留此终端，在另一个终端运行探针。chroot 内具有独立的 passwd / group / shadow、`fixture` 用户、专用 `/workspace` 和 `devpts newinstance`。它用于受信任的本机协议测试，不是恶意代码的安全沙箱；不在其中运行任意第三方脚本。
+
+交换目录包含 `client_ed25519`、公钥、公开的 `fingerprint`、独立 `known_hosts`、`jail-path`、`port` 及下载包。用管理员刚生成的 `fingerprint` 核验本次本机夹具，在 Windows 探针中传入对应路径：
+
+```powershell
+$pocExchange = '<repo>/.tools/p02-repro-new'
+$verifiedFingerprint = (Get-Content -LiteralPath "$pocExchange/fingerprint" -Raw).Trim()
+go run . -host 127.0.0.1 -port 22477 -user fixture `
+  -key "$pocExchange/client_ed25519" -known-hosts "$pocExchange/known_hosts" `
+  -trust-host-key $verifiedFingerprint -command whoami -pty `
+  -timeout 30s -round-trip-parent /workspace
+```
+
+停止时先关闭测试客户端，再在运行该夹具的前台终端按 `Ctrl+C`，核对该终端退出与指定端口监听状态。脚本没有自动 kill / 删除逻辑；`PidFile` 可能残留，不用于直接终止进程。确认该夹具与子会话均已停止后，root 在 Ubuntu 终端使用以下步骤验证路径与归属并卸载专属 devpts，保留全部数据：
+
+```bash
+task_exchange=$(realpath -e -- '<repo>/.tools/p02-repro-new')
+task_jail=$(cat -- "$task_exchange/jail-path")
+[[ "$task_jail" =~ ^/var/tmp/hopnode-p02-jail-[A-Za-z0-9]{8}$ ]] || exit 1
+[[ -d "$task_jail" && ! -L "$task_jail" && "$(realpath -e -- "$task_jail")" == "$task_jail" ]] || exit 1
+[[ "$(stat -c %u -- "$task_jail")" == 0 ]] || exit 1
+[[ "$(cat -- "$task_jail/.hopnode-p02-exchange")" == "$task_exchange" ]] || exit 1
+findmnt --mountpoint "$task_jail/dev/pts"
+[[ "$(findmnt -rn --mountpoint "$task_jail/dev/pts" -o FSTYPE)" == devpts ]] || exit 1
+umount -- "$task_jail/dev/pts"
+```
+
+若卸载提示 busy，保留现场并检查该夹具仍存活的子会话；不使用强制或 lazy unmount，也不根据进程名批量终止 sshd。准备失败时同样查看 `jail-path` 与 mount 状态。脚本已通过 `bash -n`，并实测拒绝非 root 运行及已有监听的端口；端口拒绝发生在创建交换目录前，确认未创建目标目录。原始方法的完整实测见报告；整合后脚本尚未再次启动完整夹具。
+
 ## 已授权目标的真实探针
 
 先在目标控制台或可信管理通道核验目标主机的 SHA256 指纹，再运行。以下地址为文档示例，路径及指纹必须替换为已授权测试环境的值。
