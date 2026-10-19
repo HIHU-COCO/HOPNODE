@@ -6,6 +6,8 @@
 
 标记约定：**依据**表示原文已要求的业务语义或名字；**建议**表示本草案提出的字段、方法名或映射，尚未决定；**待决**表示不可当作既定实现的技术/身份/兼容边界。除 Design 明确写出的 `GetCapabilities`、`ListDevices`、MCP 名称及 Directory 草案路径外，下文 IPC 方法和事件名均为建议。即使来自 Design，其正式 wire schema 仍未冻结。
 
+当前机器草案的完整性缺口见 [K01 审查清单](K01-gap-review.md)，其中十二项仍需补齐；字段计数与局部样例通过不表示完整契约已满足。
+
 ## 1. 评审与施工边界
 
 Plan P05 的依赖原文是“P01–P04 有明确结果（通过或标明阻塞/失败及回退），不是要求全部技术风险都人为‘通过’”；G1 则要求“阻断后续开发的未决风险已关闭或有明确授权的替代路线”。Plan §10.2 对缺少 Ubuntu Desktop/Server 测试机明确允许“先完成 Linux 构建、CI、契约、帮助文档”，§9.1 同时要求“相关工作标 BLOCKED 并只推进可独立完成的工作”。因此可以完成评审记录及本草案/样例设计，不能据此宣布 G1 通过、冻结 K01 或越过 K01→K04 开始六条业务线。
@@ -231,3 +233,11 @@ CLI 需要稳定非零退出类别（参数、连接、认证、权限、版本�
 | 实际检查 | 新增 23 正反例（8/15）；15 处 OpenAPI schema 引用离线 resolve；原 35 例及工具检查继续 PASS；Windows test/vet/build、WSL race PASS | 没有完整 OpenAPI 规范验证器、客户端生成、HTTP/IPC 服务、真实身份/撤销/事件推送或平台验收 |
 
 OpenAPI 的未声明认证方案是明确的未决项，不是匿名访问授权；inventory-only 也不是可执行端点或完成标记。事件 ID 不承诺排序/交付/回放。具体命令与剩余差距见 [POC README](../../../tests/pocs/contracts-draft/README.md) 和 [实际报告](../../../tests/pocs/contracts-draft/report.md)。P05/G1/K01 及正式验收状态不因本轮变化。
+
+## 14. 六方法响应与配对后续片段 — DRAFT
+
+独立 [envelope 草案](../../../tests/pocs/contracts-draft/envelope-cases/README.md) 为现有六个 CoreRequest 补充响应候选：请求 ID/方法回显、逐方法引用已有结果、成功/业务错误/协议错误分支，以及测试专用的有界跨消息配对检查。54 对固定样例包含 21 正例、33 反例；六方法均有明确成功映射。Windows 主树 test/vet/mod verify PASS；Linux race 结果见该片段记录。
+
+查询 GetTask/GetOperation 成功只表示取得原状态，不把原任务 failed/unknown 改为成功。静态配对检查覆盖错误请求 ID、方法、目标及已有资源 ID；UTF-8、重复字段、尾随值、字节/深度边界只针对内存 JSON。未实现 Named Pipe/UDS 传输、真实调用者授权或生产关联检查。
+
+该片段不收敛完整 IPC 或逐工具结果。OperationResult.data、CancelTask operation_id 歧义、精确协议错误分类、实际版本协商、全部流/事件/期限与共享类型仍待补齐。长度前缀和限额仅为候选，无 OS 读写证据，不改变 P05/G1/K01 状态。

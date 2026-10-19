@@ -8,7 +8,7 @@
 | ENV-04 | T02、L04/L07 | PR #1与真实CI已有PASS记录，最新提交继续检查；分支保护未设置，27项验收未通过 | 保持当前提交CI通过；正式发布前完成所需保护/审查与27项验收 |
 | TECH-01 | P02/R05、A10/A21 | SSH 断线不保证远端任务存活；撤销 authorized_keys 不终止既有会话 | Windows/Linux 任务与可归属会话 POC，明确降级边界 |
 | TECH-02 | K01–K04 | 正式 IPC/MCP/身份/性能契约未冻结 | 收集 P01–P04 的真实结论后 P05 评审；不得以 POC 代替产品 |
-| TECH-03 | P03、A06/A27 | Codex0.153.4实际协商/echo/预期错误/status已PASS；CLI协议取消未证实，Ubuntu Codex未验 | 补可靠的客户端取消及Ubuntu调用证据；不得用进程退出替代协议取消 |
+| TECH-03 | P03、A06/A27 | Codex0.153.4实际协商/echo/预期错误/status已PASS；CLI协议取消未证实；app-server实际清单未满足仅自有MCP守卫，三轮未发模型turn；Ubuntu Codex未验 | 先证明临时配置隔离与原生进程归属，再补客户端取消及Ubuntu调用；不得用参数、握手或进程退出替代取消 |
 | LEGAL-01 | 正式分发 | 产品许可证尚未由所有者选择 | 选择许可证并完成第三方许可清单 |
 | GUI-01 | P04/U05、Ubuntu GUI | WSLg旧测试出现GTK scale-factor critical；独立GNOME22.04 X11三轮显示/刷新/真实IPC PASS且stderr空，含工程deb真实安装与系统desktop入口启动；人工应用抽屉/布局/托盘/Wayland/24.04未验 | 保留WSLg原日志与环境差异；补24.04安装及两版本托盘、Wayland与完整视觉证据 |
 

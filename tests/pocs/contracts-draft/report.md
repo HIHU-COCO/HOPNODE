@@ -62,3 +62,11 @@ Git：本次仅提交本独立目录及其候选矩阵说明，实际 hash 由 G
 剩余差距：注册/心跳/停用/healthz 的完整请求响应与授权决策、撤销/重绑路径、完整 OpenAPI 规范校验/客户端生成、所有 IPC 方法/事件与订阅、查询 wire 编码与有界/上下文分页、并发条件、具体 HTTP 错误映射及真实身份/设备/平台验证。DirectoryDevice 与早期 Core Device 子集的最终共用模型仍需收敛；未知字段 null 与 HTTP 200/default 映射仅为候选。
 
 Windows 离线自动检查 PASS；Ubuntu Desktop GUI 真机、Ubuntu Server CLI 真机、MCP/跨网络/目录/事件真调用均 NOT_RUN。WSL race 不替代这些验收，P05/G1/K01 和 A01–A27 状态未改变。
+
+## 六方法 envelope 后续片段（2026-10-19，DRAFT）
+
+新增 `ipc-envelope.schema.json`、独立测试辅助及 [54 对静态样例](envelope-cases/README.md)。21 对正例、33 对反例覆盖六方法结果映射、请求/方法/目标及已有资源 ID 配对，以及协议/业务错误分支。19 个反例由响应 schema 拒绝，14 个响应本身结构合法而配对或请求语义错误；另有 JSON 大小、深度、UTF-8、重复键及尾随值边界检查。
+
+集成主树 Windows Go 1.27.2 实际执行 `go test -count=1 ./...` PASS（1.728s）、`go vet ./...` PASS、`go mod verify` PASS；WSL Ubuntu-22.04 Go 1.27.2 实际 `go test -race -count=1 ./...` PASS（6.138s），无 DATA RACE。既有样例和工具检查在同次 module 测试中继续通过。
+
+查询成功与原操作状态分开；测试辅助仅在内存中校验，未实现传输端点、真实鉴权或生产响应关联。OperationResult 内部 data、CancelTask ID 含义、完整方法/事件、精确错误映射、实际版本协商、共享类型和所有 wire 读写/期限仍待完成。该片段不改变任何平台或正式验收状态。

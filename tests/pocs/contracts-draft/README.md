@@ -4,6 +4,8 @@
 
 **仅为可执行的候选 schema 证据，不是已冻结的 contracts，不代表 P05/G1/K01 通过，也没有实现任何设备、SSH、目录或 MCP 业务服务。** 正式 A01–A27 状态不因本测试改变。
 
+后续六方法响应、协议/业务错误分支及 54 对配对样例见 [envelope 片段](envelope-cases/README.md)。其中响应关联仅由离线测试检查；全部方法、真实传输和运行时授权仍未完成。
+
 依据 [K01 候选矩阵](../../../docs/implementation/proposals/K01-contract-draft.md)、[Design §6–10](../../../Design.md)、[PRD](../../../PRD.md)。独立 module 使用 Go 1.27.2 和已有 P03 依赖 `github.com/google/jsonschema-go v0.4.3`；根 go.mod/锁文件、contracts、公共入口及 CI 未改。
 
 ## 已实现的候选范围

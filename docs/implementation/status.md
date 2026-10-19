@@ -10,14 +10,14 @@
 | --- | --- | --- | --- |
 | T00 | DONE | HIHU-COCO / 集成 | test-environment.md、risks.md、完整 F/A 台账 |
 | T01 | DONE | HIHU-COCO / 集成 | pnpm check/build、开发服务、Go build/test/vet、Windows/Linux Rust fmt/clippy/test/build PASS；见 test-results/T00-T01-baseline.md、pocs/desktop-runtime.md |
-| T02 | DONE | HIHU-COCO / 集成 | PR #1真实CI；f2961c3双平台Go/Rust、前端、Ubuntu deb与实际Windows Server2022 SCM全部PASS，Actions run39202456643；后续提交独立复验 |
+| T02 | DONE | HIHU-COCO / 集成 | PR #1真实CI；6477909双平台Go/Rust、前端、Ubuntu deb与实际Windows Server2022 SCM全部PASS，Actions run39203998317；后续提交独立复验 |
 | T03 | BLOCKED | HIHU-COCO / 集成 | 已有Windows、WSL22.04、授权LAN Ubuntu22.04 Desktop；后者SSH/PTY/SFTP通过；缺完整版本/角色真机矩阵、跨网和隔离部署 |
 | P01 | BLOCKED | ssh_finish / 集成 | Headscale0.29.5/便携TS1.98.4单机userspace：TLS正负例、双节点、合成TCP、策略切换、节点expire/旧key拒绝及清理PASS；非跨网/强制DERP；见network-isolated/RESULTS.md及ADR-network.md |
 | P02 | BLOCKED | ssh_finish / poc/ssh | Windows→隔离Ubuntu及独立LAN Ubuntu22.04命令/PTY/10MiB SFTP PASS；已修单pin算法协商；缺Windows sshd与跨平台长任务实测；tests/pocs/ssh/report.md |
-| P03 | IN_PROGRESS | mcp_finish / poc/mcp | Codex0.153.4真实echo/预期错误/status与2025-06-18协商PASS；SDK取消/race PASS；Codex协议取消尚未证实；test-results/P03-mcp-2026-10-19.md |
+| P03 | IN_PROGRESS | mcp_finish / poc/mcp | Codex0.153.4真实echo/预期错误/status与2025-06-18协商PASS；SDK取消/race PASS；app-server三轮预检均未发模型turn，配置清单/进程归属需补证，协议取消仍未证实；test-results/P03-mcp-2026-10-19.md |
 | P04 | BLOCKED | desktop_finish、mcp_finish / 集成 | Windows NSIS/真实GUI IPC/卸载、Server2022 CI实际SCM两轮启停/ACL负例/删除PASS；独立Ubuntu22.04 X11工程deb安装/desktop入口/显示刷新/内核PID核验UDS/独立Core/卸载PASS，user systemd亦PASS；缺Win10/11服务、24.04及完整身份矩阵；见P04及SCM报告 |
 | P05 | BLOCKED | HIHU-COCO / 集成 | ADR-0001联合评审已更新；跨网络/完整平台/服务身份风险未关闭；有条件施工顺序提案待用户决定，G1尚未通过 |
-| K01 | TODO | HIHU-COCO / 集成 | 独立DRAFT：原35例/26工具、Directory三个片段/三类IPC事件新增23例与protected PATCH校验PASS；完整认证/撤销/事件/结果/类型生成待补；未冻结，正式实施依赖P05 |
+| K01 | TODO | HIHU-COCO / 集成 | 独立DRAFT：原35例/26工具、Directory/事件23例及六方法envelope/配对54例PASS；完整认证/撤销/方法/事件/结果/类型生成待补，见proposals/K01-gap-review.md；未冻结，正式实施依赖P05 |
 | K02 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K03 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K04 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
