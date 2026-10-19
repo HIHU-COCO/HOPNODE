@@ -76,3 +76,21 @@ jobs:
       - run: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check
       - run: cargo clippy --locked --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
       - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        if: runner.os == 'Linux'
+        with:
+          node-version: '26.7.0'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        if: runner.os == 'Linux'
+        with:
+          version: '11.0.9'
+      - name: Ubuntu GUI engineering package smoke check
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm --dir apps/desktop tauri build --debug --bundles deb
+          for package in apps/desktop/src-tauri/target/debug/bundle/deb/*.deb; do
+            python tests/pocs/desktop-service/validate-deb.py "$package"
+          done

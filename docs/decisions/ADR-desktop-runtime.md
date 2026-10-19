@@ -16,6 +16,8 @@ GUI 不持有 Core 子进程。关闭 GUI 隐藏至托盘，托盘退出仅退�
 
 ## 取舍与后续
 
+Linux 工程预览使用 `tauri.linux.conf.json` 将打包产品名设为 ASCII `hopnode-desktop-poc`，通过 desktop 模板保留中文桌面名称。实际首轮 Tauri 打包返回成功，但 `dpkg-deb -f` 拒绝中文 `Package` 字段，因此必须用 Debian 工具检查元数据及安装，不能以打包命令退出 0 作为可安装证据。此包只覆盖 P04 桌面壳，正式 GUI/Core/CLI 分包仍由 S04 实现。
+
 - POC 的 `hopnodectl-poc` 是测试 fixture；正式 CLI 的唯一名称仍为 `hopnodectl`。
 - 用户态 Core 不授予远端操作能力，不把只读 IPC 成功解释为受控、SSH 或 MCP 可用。
 - 生产 IPC 的错误模型、身份、版本协商由集成负责人在 K01/K04 冻结；现有 `poc.v0` 无兼容承诺。

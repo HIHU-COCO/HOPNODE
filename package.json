@@ -11,8 +11,8 @@
     "build": "pnpm --dir apps/desktop build",
     "check": "pnpm format:check && pnpm --dir apps/desktop typecheck && pnpm --dir apps/desktop lint && pnpm --dir apps/desktop test",
     "verify:ledger": "python scripts/verify-ledger.py",
-    "format": "prettier --write apps/desktop/src apps/desktop/vite.config.ts apps/desktop/eslint.config.js apps/desktop/tsconfig.json apps/desktop/package.json apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/capabilities/default.json package.json pnpm-workspace.yaml",
-    "format:check": "prettier --check apps/desktop/src apps/desktop/vite.config.ts apps/desktop/eslint.config.js apps/desktop/tsconfig.json apps/desktop/package.json apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/capabilities/default.json package.json pnpm-workspace.yaml"
+    "format": "prettier --write apps/desktop/src apps/desktop/vite.config.ts apps/desktop/eslint.config.js apps/desktop/tsconfig.json apps/desktop/package.json apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/tauri.linux.conf.json apps/desktop/src-tauri/capabilities/default.json package.json pnpm-workspace.yaml",
+    "format:check": "prettier --check apps/desktop/src apps/desktop/vite.config.ts apps/desktop/eslint.config.js apps/desktop/tsconfig.json apps/desktop/package.json apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/tauri.linux.conf.json apps/desktop/src-tauri/capabilities/default.json package.json pnpm-workspace.yaml"
   },
   "devDependencies": {
     "prettier": "3.9.10"
