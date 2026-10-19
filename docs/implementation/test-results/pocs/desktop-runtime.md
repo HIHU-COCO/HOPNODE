@@ -1,6 +1,6 @@
 # T01 / P04 桌面和 IPC 测试记录
 
-日期：2026-10-19（Asia/Shanghai）；作者：HIHU-COCO。源码首提交：`0ff6780`，后续修复以 Git 历史为准。环境：当前 Windows x64 用户会话；Go 1.27.2，Rust 1.99.1。Linux 记录由集成负责人补充。
+日期：2026-10-19（Asia/Shanghai）；作者：HIHU-COCO。源码首提交：`0ff6780`，后续修复以 Git 历史为准。环境：Windows 11 专业版 x64，10.0.26200（Build 26200）的当前用户会话；Go 1.27.2，Rust 1.99.1。Linux 记录由集成负责人补充。
 
 | 检查 | 命令 | 实际结果 |
 | --- | --- | --- |
@@ -37,13 +37,37 @@
 
 截图保留于本机 `%TEMP%/hopnode-p04-gui-8f2907a3a7994420af3683922b02a146/` 的 `connected-default-final.png`、`connected-640x480-final.png`、`core-stopped.png`、`small-notice.png`。截图包含本机实际运行身份，只作为本地证据，未提交仓库。原生窗口可见启动、原生最小窗口、托盘点击/关闭恢复仍需真正桌面交互验证。
 
+## Windows 当前用户 NSIS 安装与卸载冒烟
+
+集成负责人实际执行 `pnpm --dir apps/desktop tauri build --debug --bundles nsis`，本次独立验证该生成物的安装、内嵌前端与清理行为；不是正式发布验收。
+
+- 安装器：`apps/desktop/src-tauri/target/debug/bundle/nsis/跃点 HopNode_0.1.0_x64-setup.exe`，2,864,489 字节。
+- 安装器 SHA-256：`5D1F7C91A1AFA60AB6946A4A97C3164397433D56E0C2A861033FE0240E829B22`。
+- 实际安装 exe：14,073,344 字节，SHA-256 `75D443D13E8292439C3BB3F6329C32AF1FB4401E145AC54185D4BAA2E6F2F6F2`。其哈希与后来已重新编译的 `target/debug/hopnode-desktop.exe` 不同，故不以当前开发二进制冒充打包源；本次实际启动的是安装目录内的 exe。
+
+| 步骤 / 命令 | 实际结果 |
+| --- | --- |
+| 安装前只读检查 HKCU、HKLM、WOW6432Node 卸载项与同名快捷方式 | PASS：无已有 HopNode 安装或卸载注册，无同名桌面/开始菜单快捷方式；已有 `LOCALAPPDATA/io.hopnode.desktop/EBWebView` 数据目录，作为受保护的既有数据保留 |
+| 检查生成的 `installer.nsi` | PASS：`INSTALLMODE=currentUser`、`RequestExecutionLevel user`；删除 AppData 只在显式选择删除数据复选框时触发 |
+| `Start-Process <installer> -ArgumentList /S,/D=<唯一TEMP/app> -WindowStyle Hidden -Wait` | PASS：退出码 0；未提权，安装至唯一隔离目录 |
+| 核对实际 exe、uninstall.exe、HKCU 卸载入口和快捷方式目标 | PASS：两份可执行文件存在；HKCU 的版本为 0.1.0，InstallLocation/UninstallString 和桌面/开始菜单快捷方式均指向本次隔离目录 |
+| 停止前端 devserver并检查 1420 无监听，启动安装版 exe 与独立 Go Core | PASS：未运行 Vite；安装版真实 WebView URL 为 `http://tauri.localhost/`，Tauri 内部桥存在，证明前端来自安装包内嵌资源 |
+| Playwright 连接本次安装版 WebView 的本机 CDP，实际点击「刷新状态」 | PASS：显示已连接；刷新前后页面 PID 都与本次独立 Go Core 实际 PID 一致；1120×760 无横纵溢出，截图目视通过 |
+| 停止本次 CDP/GUI/Core，复核注册仍指向隔离目录后执行其生成的 `uninstall.exe /S` | PASS：退出码 0；安装 exe、安装目录、卸载注册、桌面及开始菜单快捷方式均已移除 |
+| 清理本次安装新建且仅指向该 TEMP 路径的厂商安装位置记忆项 | PASS：生成卸载器默认保留此位置记忆项；确认安装前不存在、值等于本次路径且无子键后，只移除本次新建项及其空父键，未触碰既有用户数据 |
+| 比较原有应用数据文件清单/大小/UTC 修改时间 | PASS：前后均为 234 个文件，元数据完全一致；原有目录保留 |
+| 最终进程与端口清理 | PASS：本次 GUI/Core/调试连接已停止，9224 无监听；没有修改 Windows Service、SSH 或 Tailscale |
+
+安装与卸载证据保留于本机 `%TEMP%/hopnode-p04-install-d40b95a7eef44659872de2f213a3a9a3/`，含 `installed-gui-connected.png` 和隔离运行日志；包含真实运行身份的原始证据不提交 Git。本次安装/卸载冒烟仅覆盖当前 Windows 11 用户、debug 工程包和只读 IPC，不证明 Windows 10、Windows Service、原生托盘交互、升级恢复或 A01–A27 通过。
+
 本表只记录实际运行，测试进程身份未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
 
 | 平台/验收 | 状态 | 原因 |
 | --- | --- | --- |
 | Windows 用户态 Core / CLI Named Pipe | PASS | 实际本机独立进程测试 |
 | Windows Tauri WebView 渲染 / 刷新 / 真实 IPC / 故障恢复 | PASS | 原生 Tauri 进程内的真实 WebView，通过 CDP 点击刷新验证；没有 mock |
-| Windows 原生窗口可见启动 / 最小尺寸 / 托盘关闭恢复 / 安装器 | NOT_RUN | 隐藏启动下原生窗口句柄不支持可靠交互验证；renderer 截图不替代该验收 |
+| Windows 11 当前用户 NSIS 安装 / 内嵌前端 / 真实 IPC / 卸载 | PASS | 实际 debug 安装器在唯一 TEMP 目录安装并清理，前端不依赖 devserver；既有应用数据保持不变 |
+| Windows 原生窗口可见启动 / 最小尺寸 / 托盘关闭恢复 | NOT_RUN | 隐藏启动下原生窗口句柄不支持可靠交互验证；renderer 截图不替代该验收 |
 | Windows Service、注销、重启 | NOT_RUN | 尚未实现系统服务 POC，不能用用户态进程替代 |
 | Ubuntu Desktop 22.04/24.04 GUI、.deb、GNOME/Wayland/X11 | NOT_RUN | 没有已验收的完整 Ubuntu Desktop 两版本实机矩阵 |
 | Ubuntu Server 22.04/24.04 CLI/systemd | NOT_RUN | WSL/headless 构建不等价两版本真实 Server 与 systemd 生命周期 |
