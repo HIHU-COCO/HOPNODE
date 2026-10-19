@@ -208,13 +208,26 @@ CLI 需要稳定非零退出类别（参数、连接、认证、权限、版本�
 
 初稿轮次仅交付此 DRAFT 文档，未运行 schema 验证、代码生成、平台 E2E 或网络验收；后续的局部候选机器验证另记于 §12。以上完整清单尚未全部执行。没有新增生产接口、冻结版本、业务实现或验收通过声明。P05/G1、K01 的最终状态由总集成按原 Plan 出口判据决定。
 
-## 12. 后续局部候选 schema 验证 — DRAFT
+## 12. 首轮局部候选 schema 验证 — DRAFT（后续见 §13）
 
 独立 [contracts-draft POC](../../../tests/pocs/contracts-draft/README.md) 将少量共用模型、统一错误、六个抽象 CoreRequest 及 26 个 MCP 工具输入转成 JSON Schema 2020-12；仅解析嵌入静态数据，没有生产接口/服务或远程执行。实际结果见 [验证记录](../../../tests/pocs/contracts-draft/report.md)。
 
 - Windows Go 1.27.2 的 module 校验、测试（1.881s）、vet、build PASS；WSL Ubuntu-22.04 的 `go test -race -count=1 ./...` PASS（3.771s）。WSL 结果只证明 Linux schema 自动检查。
 - 35 个正反例（16 正例、19 反例）、26 个工具正常输入通过预期验证；25 个目标工具缺失/错类型/空值/camelCase 共 100 个反例被拒绝；12 个易重放候选工具缺 operation_id 被拒绝；10 个 Design 必需错误均可表达。
 - UNKNOWN_OUTCOME、取消接受/确认、manual/managed 身份来源和分页末页只验证候选结构声明的一致性，不证明实际执行/鉴权、结果查询、远端停止、cursor 绑定或幂等持久化。
-- Directory OpenAPI、完整 IPC/事件、逐工具 data 结果、Go/TS 类型生成、关系/运行时与兼容安全测试仍 TODO；§11 完整清单未全部执行。候选 ID 格式、manual network unknown 扩展、store 版本类型和其他约束仍待评审。
+- 该轮尚未创建 Directory OpenAPI 或事件 schema；后续局部进展见 §13。完整 IPC/事件、逐工具 data 结果、Go/TS 类型生成、关系/运行时与兼容安全测试仍 TODO；§11 完整清单未全部执行。候选 ID 格式、manual network unknown 扩展、store 版本类型和其他约束仍待评审。
 
 后续局部机器验证 PASS 不构成 P05/G1 通过、K01 冻结、K02 或六条业务线启动许可；正式验收状态保持由总集成按原 Plan 独立判断。
+
+## 13. Directory / IPC 事件后续片段 — DRAFT
+
+依 Design §7.2/7.3/7.4、§10.1 和 PRD F04/F05/F13/F15/F17，独立 POC 新增 [Directory OpenAPI 候选](../../../tests/pocs/contracts-draft/schemas/directory.openapi.json)、对应 [Directory schema](../../../tests/pocs/contracts-draft/schemas/directory.schema.json) 及 [IPC 事件 schema](../../../tests/pocs/contracts-draft/schemas/ipc-events.schema.json)。依据 Plan §10.2 与 ADR-0001，范围仍限于候选/样例机器验证，没有修改公共 contracts 或启动业务实现。
+
+| 片段 | 本轮候选和验证 | 未决/未实现 |
+| --- | --- | --- |
+| Directory 清单 | Design 七路径/八操作全部登记；GET 列表、GET 详情、PATCH 名称/备注共三项有参数/body schema；其余五项 inventory-only TODO | 注册材料、心跳身份、停用落实、healthz 可见范围、撤销/重绑路径；不选择 securitySchemes/凭据或 Headscale 策略 |
+| Directory 设备 | managed 只读投影补 hostname/系统/地址/SSH端口/版本/备注；分页末页与查询形状；PATCH 拒绝六类受保护字段 | Core 子集与目录完整投影收敛；null/地址格式、HTTP query 编码、cursor 绑定/上限、版本条件、HTTP 错误映射与关联 ID |
+| IPC 事件 | DeviceChanged/OperationChanged/TaskChanged 三个建议名，必需目标及适用 operation/task ID，复用既有 payload/unknown/取消声明约束 | 其余六类事件、framing/订阅/重放/顺序/保留/重复语义；内外 ID 相等、授权及实际停止只能由后续运行时证明 |
+| 实际检查 | 新增 23 正反例（8/15）；15 处 OpenAPI schema 引用离线 resolve；原 35 例及工具检查继续 PASS；Windows test/vet/build、WSL race PASS | 没有完整 OpenAPI 规范验证器、客户端生成、HTTP/IPC 服务、真实身份/撤销/事件推送或平台验收 |
+
+OpenAPI 的未声明认证方案是明确的未决项，不是匿名访问授权；inventory-only 也不是可执行端点或完成标记。事件 ID 不承诺排序/交付/回放。具体命令与剩余差距见 [POC README](../../../tests/pocs/contracts-draft/README.md) 和 [实际报告](../../../tests/pocs/contracts-draft/report.md)。P05/G1/K01 及正式验收状态不因本轮变化。

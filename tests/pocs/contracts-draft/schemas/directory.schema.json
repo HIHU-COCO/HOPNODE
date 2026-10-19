@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hopnode.invalid/draft/directory.schema.json",
+  "title": "DRAFT HopNode Directory query and metadata candidates",
+  "$comment": "DRAFT by HIHU-COCO, 2026-10-19. Design 7.2/7.3/7.4; query and editable metadata only. No identity, registration, revocation or HTTP status strategy is frozen.",
+  "$ref": "#/$defs/DirectoryDevice",
+  "$defs": {
+    "DirectoryDevice": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "source": {
+          "const": "managed"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hostname": {
+          "type": "string",
+          "minLength": 1
+        },
+        "os_type": {
+          "enum": [
+            "windows",
+            "linux",
+            "macos"
+          ]
+        },
+        "os_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "controller",
+              "agent"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "tailnet_ip": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ssh_host": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ssh_port": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "agent_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "agent_enabled": {
+          "type": "boolean"
+        },
+        "identity_status": {
+          "enum": [
+            "active",
+            "suspended",
+            "revoked",
+            "retired"
+          ]
+        },
+        "network_status": {
+          "enum": [
+            "online",
+            "pending",
+            "offline"
+          ]
+        },
+        "ssh_status": {
+          "enum": [
+            "ready",
+            "unavailable",
+            "auth_failed",
+            "unknown"
+          ]
+        },
+        "connection_type": {
+          "enum": [
+            "direct",
+            "relay",
+            "peer_relay",
+            "unknown"
+          ]
+        },
+        "last_seen_at": {
+          "anyOf": [
+            {
+              "$ref": "core-api.schema.json#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "type": "string"
+        },
+        "observed_at": {
+          "$ref": "core-api.schema.json#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "device_id",
+        "source",
+        "display_name",
+        "hostname",
+        "os_type",
+        "os_version",
+        "roles",
+        "tailnet_ip",
+        "ssh_host",
+        "ssh_port",
+        "agent_version",
+        "agent_enabled",
+        "identity_status",
+        "network_status",
+        "ssh_status",
+        "connection_type",
+        "last_seen_at",
+        "note",
+        "observed_at"
+      ],
+      "additionalProperties": false
+    },
+    "DevicePage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DirectoryDevice"
+          }
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed_at": {
+          "$ref": "core-api.schema.json#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor",
+        "observed_at"
+      ],
+      "additionalProperties": false
+    },
+    "ListDevicesQuery": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "online",
+            "pending",
+            "offline"
+          ]
+        },
+        "os": {
+          "enum": [
+            "windows",
+            "linux",
+            "macos"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "DevicePathParameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "UpdateDeviceRequest": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "minProperties": 1
+    }
+  }
+}

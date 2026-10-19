@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hopnode.invalid/draft/ipc-events.schema.json",
+  "title": "DRAFT HopNode IPC event candidates",
+  "$comment": "DRAFT by HIHU-COCO, 2026-10-19. Design 10.1 requires event schemas but does not specify these names. Three proposal candidates only; no framing, delivery, ordering, replay or actual cancellation claim.",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "$ref": "core-api.schema.json#/$defs/ID"
+    },
+    "event_type": {
+      "enum": [
+        "DeviceChanged",
+        "OperationChanged",
+        "TaskChanged"
+      ]
+    },
+    "observed_at": {
+      "$ref": "core-api.schema.json#/$defs/Timestamp"
+    },
+    "device_id": {
+      "$ref": "core-api.schema.json#/$defs/ID"
+    },
+    "operation_id": {
+      "$ref": "core-api.schema.json#/$defs/ID"
+    },
+    "task_id": {
+      "$ref": "core-api.schema.json#/$defs/ID"
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "observed_at",
+    "device_id",
+    "data"
+  ],
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "event_type": {
+          "const": "DeviceChanged"
+        },
+        "data": {
+          "$ref": "core-api.schema.json#/$defs/Device"
+        }
+      }
+    },
+    {
+      "required": [
+        "operation_id"
+      ],
+      "properties": {
+        "event_type": {
+          "const": "OperationChanged"
+        },
+        "data": {
+          "$ref": "core-api.schema.json#/$defs/OperationResult"
+        }
+      }
+    },
+    {
+      "required": [
+        "operation_id",
+        "task_id"
+      ],
+      "properties": {
+        "event_type": {
+          "const": "TaskChanged"
+        },
+        "data": {
+          "$ref": "core-api.schema.json#/$defs/Task"
+        }
+      }
+    }
+  ]
+}

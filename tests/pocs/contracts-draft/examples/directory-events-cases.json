@@ -1,0 +1,504 @@
+[
+  {
+    "name": "directory/managed_device",
+    "schema": "directory.schema.json",
+    "definition": "DirectoryDevice",
+    "valid": true,
+    "value": {
+      "device_id": "draft-device-001",
+      "source": "managed",
+      "display_name": "DRAFT managed device",
+      "hostname": "draft-host",
+      "os_type": "linux",
+      "os_version": "DRAFT",
+      "roles": [
+        "agent"
+      ],
+      "tailnet_ip": null,
+      "ssh_host": null,
+      "ssh_port": null,
+      "agent_version": null,
+      "agent_enabled": false,
+      "identity_status": "suspended",
+      "network_status": "pending",
+      "ssh_status": "unknown",
+      "connection_type": "unknown",
+      "last_seen_at": null,
+      "note": "Synthetic offline data",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "directory/manual_source_rejected",
+    "schema": "directory.schema.json",
+    "definition": "DirectoryDevice",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "source": "manual_ssh",
+      "display_name": "DRAFT managed device",
+      "hostname": "draft-host",
+      "os_type": "linux",
+      "os_version": "DRAFT",
+      "roles": [
+        "agent"
+      ],
+      "tailnet_ip": null,
+      "ssh_host": null,
+      "ssh_port": null,
+      "agent_version": null,
+      "agent_enabled": false,
+      "identity_status": "suspended",
+      "network_status": "pending",
+      "ssh_status": "unknown",
+      "connection_type": "unknown",
+      "last_seen_at": null,
+      "note": "Synthetic offline data",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "directory/port_out_of_range",
+    "schema": "directory.schema.json",
+    "definition": "DirectoryDevice",
+    "valid": false,
+    "value": {
+      "device_id": "draft-device-001",
+      "source": "managed",
+      "display_name": "DRAFT managed device",
+      "hostname": "draft-host",
+      "os_type": "linux",
+      "os_version": "DRAFT",
+      "roles": [
+        "agent"
+      ],
+      "tailnet_ip": null,
+      "ssh_host": null,
+      "ssh_port": 0,
+      "agent_version": null,
+      "agent_enabled": false,
+      "identity_status": "suspended",
+      "network_status": "pending",
+      "ssh_status": "unknown",
+      "connection_type": "unknown",
+      "last_seen_at": null,
+      "note": "Synthetic offline data",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "directory/final_page",
+    "schema": "directory.schema.json",
+    "definition": "DevicePage",
+    "valid": true,
+    "value": {
+      "items": [
+        {
+          "device_id": "draft-device-001",
+          "source": "managed",
+          "display_name": "DRAFT managed device",
+          "hostname": "draft-host",
+          "os_type": "linux",
+          "os_version": "DRAFT",
+          "roles": [
+            "agent"
+          ],
+          "tailnet_ip": null,
+          "ssh_host": null,
+          "ssh_port": null,
+          "agent_version": null,
+          "agent_enabled": false,
+          "identity_status": "suspended",
+          "network_status": "pending",
+          "ssh_status": "unknown",
+          "connection_type": "unknown",
+          "last_seen_at": null,
+          "note": "Synthetic offline data",
+          "observed_at": "2026-10-19T00:00:00Z"
+        }
+      ],
+      "next_cursor": null,
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "directory/empty_cursor",
+    "schema": "directory.schema.json",
+    "definition": "DevicePage",
+    "valid": false,
+    "value": {
+      "items": [
+        {
+          "device_id": "draft-device-001",
+          "source": "managed",
+          "display_name": "DRAFT managed device",
+          "hostname": "draft-host",
+          "os_type": "linux",
+          "os_version": "DRAFT",
+          "roles": [
+            "agent"
+          ],
+          "tailnet_ip": null,
+          "ssh_host": null,
+          "ssh_port": null,
+          "agent_version": null,
+          "agent_enabled": false,
+          "identity_status": "suspended",
+          "network_status": "pending",
+          "ssh_status": "unknown",
+          "connection_type": "unknown",
+          "last_seen_at": null,
+          "note": "Synthetic offline data",
+          "observed_at": "2026-10-19T00:00:00Z"
+        }
+      ],
+      "next_cursor": "",
+      "observed_at": "2026-10-19T00:00:00Z"
+    }
+  },
+  {
+    "name": "directory/filter_query",
+    "schema": "directory.schema.json",
+    "definition": "ListDevicesQuery",
+    "valid": true,
+    "value": {
+      "status": "online",
+      "os": "linux",
+      "name": "DRAFT",
+      "page_size": 2,
+      "cursor": null
+    }
+  },
+  {
+    "name": "directory/undeclared_query",
+    "schema": "directory.schema.json",
+    "definition": "ListDevicesQuery",
+    "valid": false,
+    "value": {
+      "include_credentials": true
+    }
+  },
+  {
+    "name": "directory/path_parameters",
+    "schema": "directory.schema.json",
+    "definition": "DevicePathParameters",
+    "valid": true,
+    "value": {
+      "id": "draft-device-001"
+    }
+  },
+  {
+    "name": "directory/empty_path_identity",
+    "schema": "directory.schema.json",
+    "definition": "DevicePathParameters",
+    "valid": false,
+    "value": {
+      "id": ""
+    }
+  },
+  {
+    "name": "directory/edit_name_and_note",
+    "schema": "directory.schema.json",
+    "definition": "UpdateDeviceRequest",
+    "valid": true,
+    "value": {
+      "display_name": "DRAFT renamed",
+      "note": ""
+    }
+  },
+  {
+    "name": "directory/empty_patch",
+    "schema": "directory.schema.json",
+    "definition": "UpdateDeviceRequest",
+    "valid": false,
+    "value": {}
+  },
+  {
+    "name": "directory/patch_cannot_enable_agent",
+    "schema": "directory.schema.json",
+    "definition": "UpdateDeviceRequest",
+    "valid": false,
+    "value": {
+      "agent_enabled": true
+    }
+  },
+  {
+    "name": "directory/patch_cannot_revoke_identity",
+    "schema": "directory.schema.json",
+    "definition": "UpdateDeviceRequest",
+    "valid": false,
+    "value": {
+      "identity_status": "revoked"
+    }
+  },
+  {
+    "name": "event/device_snapshot",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": true,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "DeviceChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-002",
+      "data": {
+        "device_id": "draft-device-002",
+        "source": "manual_ssh",
+        "display_name": "DRAFT manual device",
+        "roles": [
+          "controller"
+        ],
+        "network_status": "unknown",
+        "ssh_status": "ready",
+        "connection_type": "unknown",
+        "agent_enabled": null,
+        "identity_status": null,
+        "last_seen_at": null,
+        "observed_at": "2026-10-19T00:00:00Z"
+      }
+    }
+  },
+  {
+    "name": "event/unknown_operation",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": true,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "OperationChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-001",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "status": "unknown",
+        "data": null,
+        "error": {
+          "code": "UNKNOWN_OUTCOME",
+          "message": "DRAFT outcome requires query",
+          "device_id": "draft-device-001",
+          "retryable": false,
+          "details": {
+            "stage": "query"
+          }
+        }
+      },
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "event/confirmed_canceled_task",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": true,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "TaskChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-001",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "task_id": "draft-task-001",
+        "status": "canceled",
+        "exit_code": null,
+        "timed_out": false,
+        "observed_at": "2026-10-19T00:00:00Z",
+        "cancellation": {
+          "requested": true,
+          "accepted": true,
+          "confirmed": true,
+          "confirmed_at": "2026-10-19T00:00:00Z"
+        }
+      },
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001"
+    }
+  },
+  {
+    "name": "event/missing_device",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "DeviceChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "data": {
+        "device_id": "draft-device-002",
+        "source": "manual_ssh",
+        "display_name": "DRAFT manual device",
+        "roles": [
+          "controller"
+        ],
+        "network_status": "unknown",
+        "ssh_status": "ready",
+        "connection_type": "unknown",
+        "agent_enabled": null,
+        "identity_status": null,
+        "last_seen_at": null,
+        "observed_at": "2026-10-19T00:00:00Z"
+      }
+    }
+  },
+  {
+    "name": "event/missing_operation",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "OperationChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-001",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "status": "unknown",
+        "data": null,
+        "error": {
+          "code": "UNKNOWN_OUTCOME",
+          "message": "DRAFT outcome requires query",
+          "device_id": "draft-device-001",
+          "retryable": false,
+          "details": {
+            "stage": "query"
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "event/missing_task",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "TaskChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-001",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "task_id": "draft-task-001",
+        "status": "canceled",
+        "exit_code": null,
+        "timed_out": false,
+        "observed_at": "2026-10-19T00:00:00Z",
+        "cancellation": {
+          "requested": true,
+          "accepted": true,
+          "confirmed": true,
+          "confirmed_at": "2026-10-19T00:00:00Z"
+        }
+      },
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "event/canceled_without_confirmation",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "TaskChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-001",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "task_id": "draft-task-001",
+        "status": "canceled",
+        "exit_code": null,
+        "timed_out": false,
+        "observed_at": "2026-10-19T00:00:00Z"
+      },
+      "operation_id": "draft-operation-001",
+      "task_id": "draft-task-001"
+    }
+  },
+  {
+    "name": "event/unknown_outcome_not_replayable",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "OperationChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-001",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "status": "unknown",
+        "data": null,
+        "error": {
+          "code": "UNKNOWN_OUTCOME",
+          "message": "DRAFT outcome requires query",
+          "device_id": "draft-device-001",
+          "retryable": true,
+          "details": {
+            "stage": "query"
+          }
+        }
+      },
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "event/unimplemented_type_rejected",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "AgentStateChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-002",
+      "data": {
+        "device_id": "draft-device-002",
+        "source": "manual_ssh",
+        "display_name": "DRAFT manual device",
+        "roles": [
+          "controller"
+        ],
+        "network_status": "unknown",
+        "ssh_status": "ready",
+        "connection_type": "unknown",
+        "agent_enabled": null,
+        "identity_status": null,
+        "last_seen_at": null,
+        "observed_at": "2026-10-19T00:00:00Z"
+      }
+    }
+  },
+  {
+    "name": "event/wrong_payload_type",
+    "schema": "ipc-events.schema.json",
+    "definition": "",
+    "valid": false,
+    "value": {
+      "event_id": "draft-event-001",
+      "event_type": "DeviceChanged",
+      "observed_at": "2026-10-19T00:00:00Z",
+      "device_id": "draft-device-002",
+      "data": {
+        "device_id": "draft-device-001",
+        "operation_id": "draft-operation-001",
+        "task_id": "draft-task-001",
+        "status": "canceled",
+        "exit_code": null,
+        "timed_out": false,
+        "observed_at": "2026-10-19T00:00:00Z",
+        "cancellation": {
+          "requested": true,
+          "accepted": true,
+          "confirmed": true,
+          "confirmed_at": "2026-10-19T00:00:00Z"
+        }
+      }
+    }
+  }
+]

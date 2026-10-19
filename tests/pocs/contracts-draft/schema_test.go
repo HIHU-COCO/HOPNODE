@@ -15,14 +15,14 @@ import (
 	"github.com/google/jsonschema-go/jsonschema"
 )
 
-//go:embed schemas/*.json examples/cases.json examples/valid/tool-calls.json
+//go:embed schemas/*.json examples/cases.json examples/directory-events-cases.json examples/valid/tool-calls.json
 var documents embed.FS
 
 const schemaBase = "https://hopnode.invalid/draft/"
 
 func loadSchema(uri *url.URL) (*jsonschema.Schema, error) {
 	// Only embedded, exact identifiers are allowed. There is no HTTP/file fallback.
-	for _, name := range []string{"core-api.schema.json", "errors.schema.json", "mcp-tools.schema.json"} {
+	for _, name := range []string{"core-api.schema.json", "errors.schema.json", "mcp-tools.schema.json", "directory.schema.json", "ipc-events.schema.json"} {
 		if uri.String() != schemaBase+name {
 			continue
 		}
@@ -71,7 +71,7 @@ func readJSON(t *testing.T, file string, destination any) {
 }
 
 func TestSchemasResolveOffline(t *testing.T) {
-	for _, name := range []string{"core-api.schema.json", "errors.schema.json", "mcp-tools.schema.json"} {
+	for _, name := range []string{"core-api.schema.json", "errors.schema.json", "mcp-tools.schema.json", "directory.schema.json", "ipc-events.schema.json"} {
 		t.Run(name, func(t *testing.T) {
 			resolved := resolve(t, name, "")
 			if !strings.HasPrefix(resolved.Schema().Title, "DRAFT ") || resolved.Schema().Schema != "https://json-schema.org/draft/2020-12/schema" {
