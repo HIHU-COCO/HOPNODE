@@ -98,11 +98,33 @@
 
 脱敏证据索引：集成工作树本机忽略目录 `.tools/authorized-ubuntu-22/` 中的 `gui-run.json`、`user-unit-run.json`、`gui-proof-summary.json`，以及 `desktop-run/`、`user-unit-run/` 各自的 `report.json`、`ipc-audit.jsonl`、`ui-accessibility.json`。两轮实际报告、审计和 UI 布尔结果已经核对；原始会话元数据、用户名、目标地址及凭据未写入本报告或提交 Git。私有运行证据保留，原有用户配置、数据和系统设置未清理。
 
-本次结果只证明上述 GNOME 22.04 X11 环境中的暂存二进制、真实 GUI→UDS、真实刷新及用户态独立 Core 生命周期。AT-SPI 结果不等于人工目视布局验收。两轮零 stderr 说明完整 GNOME 真机此次未复现先前 WSLg 的 GTK 警告，不覆盖或撤销既有 WSLg 失败/日志。未验证 `.deb` 系统安装/卸载、桌面菜单、Wayland、Ubuntu 24.04、托盘关闭/恢复、系统级 root systemd、注销/重启或 Windows SCM。
+这两轮结果只证明上述 GNOME 22.04 X11 环境中的暂存二进制、真实 GUI→UDS、真实刷新及用户态独立 Core 生命周期。AT-SPI 结果不等于人工目视布局验收。两轮零 stderr 说明完整 GNOME 真机此次未复现先前 WSLg 的 GTK 警告，不覆盖或撤销既有 WSLg 失败/日志。这两轮未验证 `.deb` 系统安装/卸载、桌面菜单、Wayland、Ubuntu 24.04、托盘关闭/恢复、系统级 root systemd、注销/重启或 Windows SCM；后续系统安装轮单独记录如下。
 
-新增可选 `--installed-desktop` 模式，用户授权下由集成负责人独立安装/卸载包，普通用户 runner 仅负责核验安装文件哈希并经真实 Gio desktop-entry 启动、隔离及复用五项检查。`python3 test-desktop-entry.py` 在本地 WSL Ubuntu 22.04 实际 PASS：1 个真实 Gio sleep fixture 生命周期测试，确认新 session/group、PID callback、精确环境与组回收；此测试没有 GUI 验收含义。安装模式远端运行及卸载结果待集成负责人执行后另记，不由前述暂存两轮推断。
+新增可选 `--installed-desktop` 模式，用户授权下由集成负责人独立安装/卸载包，普通用户 runner 仅负责核验安装文件哈希并经真实 Gio desktop-entry 启动、隔离及复用五项检查。`python3 test-desktop-entry.py` 在本地 WSL Ubuntu 22.04 实际 PASS：1 个真实 Gio sleep fixture 生命周期测试，确认新 session/group、PID callback、精确环境与组回收；此测试没有 GUI 验收含义。
 
 审查发现此前 user-unit runner 在 `systemd-run` 正常返回后才登记清理，若单元已创建但父命令异常，可能漏 stop。已改为启动前创建生命周期账本，finally 对独有 UUID 单元 stop 并独立读取状态，未核验停止则 FAIL/保留 stage。`python3 test-user-unit.py` 实际 3 passed：模拟创建成功但父命令超时后仍执行 stop；stop 失败且仍 active 不授权清理；stop 后查询超时也不授权清理。七份 Python `ast.parse` 与 `git diff --check` 退出 0。本次是失败路径回归，不覆盖或撤销此前两轮真实成功路径证据。
+
+## Ubuntu 22.04 系统安装 / desktop-entry / 卸载闭环
+
+用户明确授权「允许临时安装、测试后卸载」，且不安装新依赖。集成负责人在同一已授权 GNOME/X11 真机执行真实系统安装和卸载，密码只经安全执行通道处理，未交给本代理或写入源码。包仍为工程 debug 诊断 POC，`.deb` / Core 哈希与前述两轮相同。
+
+| 步骤 / 命令 | 实际结果 |
+| --- | --- |
+| 安装前只读 preflight | PASS：包记录不存在；三个 payload 文件均不存在且父目录无 symlink 冲突；包无维护脚本，架构 amd64；不覆盖既有安装 |
+| `sudo dpkg --install <已验证 gui.deb>` | PASS：退出 0、stderr 为空；没有安装新依赖；`dpkg-query` 为 `install ok installed` / 0.1.0，`dpkg -V` 无输出（集成负责人实际核对） |
+| 普通用户运行 `linux-desktop-stage.py ... --installed-desktop /usr/share/applications/hopnode-desktop-poc.desktop` | PASS：退出 0，`gui_launch_method=Gio.DesktopAppInfo installed desktop entry`；读取实际系统入口，核验 root-owned/权限及与原包一致的哈希后通过 Gio 启动 |
+| Gio PID 与实际安装 exe | PASS：新 session/group 归属成立，`installed_desktop_exec_verified=true`；`/proc/<pid>/exe` 为 `/usr/bin/hopnode-desktop` |
+| 五项功能检查 | PASS：无 DISPLAY CLI、UDS 0600、真实 GUI→UDS、AT-SPI 连接状态/实际 Core PID/真实刷新、GUI 退出后同一 Core 继续回应，五项全 PASS |
+| GUI 请求审计和日志 | PASS：恰好 2 条来自实际 GUI 内核 PID 的成功状态请求，分别为初始连接和刷新；GUI stderr 为 0 字节 |
+| 本次 GUI/Core 与运行子目录清理 | PASS：两个 owned 进程组后验均 gone、无剩余状态；七个自建运行子目录全部 REMOVED；原有配置/数据不在清理范围 |
+| `sudo dpkg --remove hopnode-desktop-poc` | PASS：退出 0、stderr 为空；包记录与三个 payload 文件均不存在；原有 ssh/tailscaled 服务仍 active |
+| 上传目录清理 | PASS：按本次精确 9 文件清单、当前 UID、常规文件与父 0700 校验后逐个 unlink，再 rmdir 空目录；`recursive_delete_used=false`，上传目录已移除；三个仅含证据的独立私有运行目录保留 |
+
+实际安装的 `.desktop` SHA-256 为 `0eb4140b918a538fb7366edc4fb16db412510418a71a477da992aa8caab65ebb`，exe SHA-256 为 `997914054091ef108cd9feec0a8d1644bab54d21edecdb6cff79b3bf286d6653`，均与同一 `.deb` 提取文件一致。
+
+本机忽略证据：`.tools/authorized-ubuntu-22/installed-run.json`、`package-{preflight,install,remove,postflight}.json`、`upload-stage-cleanup.json`，以及 `installed-run/` 内的 report/audit/UI 结果和空 GUI stderr。已只读复核包操作退出码、前后置布尔结果、真实 Gio/安装 exe 标记与两条 GUI 内核请求；未读取私有 session/目标元数据。上传目录已经清理，后续复测必须建立新的授权暂存目录。
+
+本轮证明 Ubuntu 22.04 X11 上这个工程 `.deb` 的真实安装、系统 desktop-entry 启动、只读 IPC 与卸载闭环。Gio 启动不等同在 GNOME 应用抽屉人工点击，AT-SPI 不等同布局目视验收；仍未覆盖托盘、Wayland、24.04、系统级 root 服务、注销/重启、升级恢复或正式 A 项，P04 保持 BLOCKED。
 
 本表只记录实际运行，实际运行用户名未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
 
@@ -114,7 +136,8 @@
 | Windows 原生窗口可见启动 / 最小尺寸 / 托盘关闭恢复 | NOT_RUN | 隐藏启动下原生窗口句柄不支持可靠交互验证；renderer 截图不替代该验收 |
 | Windows Service / SCM、注销、重启 | NOT_RUN | 本记录只有用户态进程证据；SCM 真实启停受当前权限阻塞，不能据此验收 |
 | Ubuntu Desktop 22.04 GNOME X11 暂存 GUI / UDS / 真实刷新 / 独立 Core | PASS | 两轮实际真机执行；普通进程与 transient user unit 各自五项检查通过 |
-| Ubuntu `.deb` 系统安装/卸载与桌面菜单、Wayland、24.04、托盘、系统级 systemd / 注销 / 重启 | NOT_RUN | `dpkg-deb -x` 暂存和用户态单元不替代这些验收；两版本完整矩阵仍缺失 |
+| Ubuntu Desktop 22.04 工程 `.deb` 系统安装 / 实际 desktop-entry / 真实 IPC / 卸载 | PASS | 真实 dpkg 安装、系统 Gio 入口启动、五项检查通过后实际卸载；三个 payload 已移除 |
+| GNOME 应用抽屉人工点击 / 布局目视、Wayland、24.04、托盘、系统级 systemd / 注销 / 重启 | NOT_RUN | Gio/AT-SPI 与用户态单元不替代这些验收；两版本完整矩阵仍缺失 |
 | Ubuntu Server 22.04/24.04 CLI/systemd | NOT_RUN | WSL/headless 构建不等价两版本真实 Server 与 systemd 生命周期 |
 | MCP / 不同网络 / DERP | NOT_RUN | 此 POC 没有这些能力，不属于本地 IPC 检查 |
 

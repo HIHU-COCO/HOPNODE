@@ -22,6 +22,8 @@ GUI 不持有 Core 子进程。关闭 GUI 隐藏至托盘，托盘退出仅退�
 
 这些证据支持当前用户态 IPC 与进程解耦方案。它们不证明 `.deb` 安装/卸载或菜单启动、Wayland、24.04、托盘、系统级 root 服务、Windows SCM 或注销/重启验收通过；AT-SPI 操作也不代替布局目视验收。脱敏证据索引与实际生成物哈希见桌面运行时测试记录。
 
+随后用户明确授权临时安装并在测试后卸载。集成负责人完成同一工程 `.deb` 的真实 dpkg 安装，普通用户 runner 经实际系统 `hopnode-desktop-poc.desktop` 的 Gio manager 启动入口，确认 `/proc` 中实际安装二进制、同包哈希、真实 GUI PID 请求和 AT-SPI 刷新，五项检查全部通过；退出 GUI 后同一独立 Core 继续工作。随后实际 dpkg 卸载，包记录与三个 payload 均已不存在，owned 进程组、运行子目录及独有上传文件已清理，私有证据保留。该结果补充系统安装/入口机制的局部依据；不等同 GNOME 应用抽屉人工点击、布局目视或全部 A 项通过，P04 仍 BLOCKED。
+
 ## 取舍与后续
 
 Linux 工程预览使用 `tauri.linux.conf.json` 将打包产品名设为 ASCII `hopnode-desktop-poc`，通过 desktop 模板保留中文桌面名称。实际首轮 Tauri 打包返回成功，但 `dpkg-deb -f` 拒绝中文 `Package` 字段，因此必须用 Debian 工具检查元数据及安装，不能以打包命令退出 0 作为可安装证据。此包只覆盖 P04 桌面壳，正式 GUI/Core/CLI 分包仍由 S04 实现。
@@ -29,6 +31,6 @@ Linux 工程预览使用 `tauri.linux.conf.json` 将打包产品名设为 ASCII 
 - POC 的 `hopnodectl-poc` 是测试 fixture；正式 CLI 的唯一名称仍为 `hopnodectl`。
 - 用户态 Core 不授予远端操作能力，不把只读 IPC 成功解释为受控、SSH 或 MCP 可用。
 - 生产 IPC 的错误模型、身份、版本协商由集成负责人在 K01/K04 冻结；现有 `poc.v0` 无兼容承诺。
-- 必须补 Ubuntu Desktop 22.04/24.04 真正 GUI `.deb` 安装、菜单启动和 GNOME/Wayland/X11；WSL 不等价。
+- Ubuntu 22.04 X11 工程 `.deb` 的安装/Gio 系统入口/卸载已有真机证据；必须补 GNOME 菜单人工操作、完整功能及 Ubuntu 24.04 / Wayland 等矩阵，WSL 不等价。
 - 已取得两轮 Ubuntu 22.04 X11 GUI 终止后用户态 Core 独立运行证据；必须继续补 Windows Service、系统级 systemd、用户注销/系统重启、跨身份拒绝访问和原生托盘关闭/恢复。
 - P04 当前不能标 DONE；证据见 `docs/implementation/test-results/pocs/desktop-runtime.md`。

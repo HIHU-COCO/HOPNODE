@@ -4,7 +4,7 @@
 
 ## 安全边界与能证明的事实
 
-使用 `dpkg-deb -x` 将已构建 GUI `.deb` 提取到唯一的 0700 `/tmp/hopnode-p04-<uid>-...`。不安装包、不 sudo、不修改 systemd 系统单元、网络、桌面快捷方式或现有程序。Go fixture 为独立纯 CLI/Core 二进制；所有程序/配置/data/cache/state、UDS 都在该唯一目录。GUI 仅使用负责人明确提供的既有 DISPLAY、XAUTHORITY 与用户 DBus，脚本不会猜测或改写这些值。
+默认模式使用 `dpkg-deb -x` 将已构建 GUI `.deb` 提取到唯一的 0700 `/tmp/hopnode-p04-<uid>-...`。runner 自身不安装包、不 sudo、不修改 systemd 系统单元、网络、桌面快捷方式或现有程序。Go fixture 为独立纯 CLI/Core 二进制；默认模式的程序、两种模式的隔离配置/data/cache/state 和 UDS 都在该唯一目录。GUI 仅使用负责人明确提供的既有 DISPLAY、XAUTHORITY 与用户 DBus，脚本不会猜测或改写这些值。用户授权系统安装后的 installed 模式另见下文，只有该模式通过实际系统入口启动已安装 GUI。
 
 真实 GUI→UDS 证据使用 Go fixture 可选 `HOPNODE_POC_AUDIT_FILE`：0600、O_EXCL 新文件，以 Linux `SO_PEERCRED` 记录内核返回的 peer PID/UID、请求方法/路径、响应码及 controller PID/实例。只有请求 peer PID **等于实际启动的 GUI PID**、UID 匹配、`GET /v0/status` 返回 200 才算真实 GUI IPC 通过。CLI 的 PID 与 GUI 不同，不会被计入 GUI 成功证据。此只读 POC 审计不是生产认证/授权契约，日志只保留在私有证据目录。
 
@@ -79,13 +79,15 @@ Gio 的 child-setup 仅对本次新进程执行 `setsid`，PID callback 在启�
 
 ## 2026-10-19 真机执行记录
 
-集成负责人已在 Ubuntu Desktop 22.04 x86_64 / kernel 6.8.0-138-generic / GNOME 42.9 / X11 的普通 uid 1000 会话执行上述两个命令，均退出 0、总体 PASS。GTK 3.24.33、WebKitGTK 4.1 2.50.4、AppIndicator 0.5.90 为机器原有依赖，本次没有安装系统包或使用 sudo。
+集成负责人已在 Ubuntu Desktop 22.04 x86_64 / kernel 6.8.0-138-generic / GNOME 42.9 / X11 的普通 uid 1000 会话执行默认解包和 `--user-unit` 两轮，均退出 0、总体 PASS。GTK 3.24.33、WebKitGTK 4.1 2.50.4、AppIndicator 0.5.90 为机器原有依赖；这两轮没有安装系统包或使用 sudo。
 
 每轮 `headless_cli_before_gui`、`uds_mode_0600`、`gui_to_real_uds`、`visible_ui_and_refresh`、`same_core_after_gui_exit_without_display` 均 PASS。AT-SPI 实际读取本次 GUI 的已连接及 Core PID，再点击刷新；各有恰好 2 条 GUI 内核 PID 的 `GET /v0/status=200` 请求，全部审计身份核验通过。两轮 GUI stderr 均为 0 字节，此次完整 GNOME 环境未复现此前 WSLg GTK 警告，既有 WSLg 失败记录仍然有效。
 
 普通轮 GUI/Core 两个 owned 进程组均已不存在。user-unit 轮 GUI 组已不存在，独有单元停止后 `MainPID=0`、`ActiveState=inactive`、`LoadState=not-found`。两轮 extracted/bin/runtime/config/data/cache/state 七个自建运行子目录均已清理，保留私有证据。
 
-复核使用集成工作树忽略目录 `.tools/authorized-ubuntu-22/` 下两轮报告、审计、UI 布尔结果和 `gui-proof-summary.json`，未读取或提交私有会话环境/目标元数据。生成物哈希和逐项结果见 `docs/implementation/test-results/pocs/desktop-runtime.md`。这里的 PASS 仅指暂存探针列明项目：`.deb` 是解包运行，未系统安装；Wayland、24.04、桌面菜单、托盘、root systemd、Windows SCM 和正式验收仍未覆盖，P04 保持 BLOCKED。
+用户授权后，负责人又完成工程 `.deb` 的真实 dpkg 安装，使用 `--installed-desktop` 运行第三轮，五项检查全部 PASS。Gio 实际系统入口与 `/proc` 实际安装 exe 均已核对，文件哈希与原包一致；两条 GUI 内核请求对应初始连接和真实刷新，stderr 0 字节。两个 own 进程组已 gone、七个运行子目录已清理。负责人立即真实 dpkg 卸载，包记录和三个 payload 均不存在，原有 ssh/tailscaled 仍 active。独有上传目录的 9 个文件在归属/权限校验后逐项 unlink、rmdir 空目录，已移除，不能继续沿用旧上传路径；三个仅存证据的私有运行目录保留。
+
+复核使用集成工作树忽略目录 `.tools/authorized-ubuntu-22/` 下三轮报告、审计、UI 布尔结果、`gui-proof-summary.json`、package 操作与上传清理结果，未读取或提交私有会话环境/目标元数据。生成物哈希和逐项结果见 `docs/implementation/test-results/pocs/desktop-runtime.md`。Gio 系统入口启动不等同 GNOME 应用抽屉人工点击；布局目视、Wayland、24.04、托盘、root systemd、Windows SCM 和正式验收仍未覆盖，P04 保持 BLOCKED。
 
 ## 清理与限制
 
