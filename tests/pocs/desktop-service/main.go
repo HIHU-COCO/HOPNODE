@@ -66,7 +66,15 @@ func serve(ctx context.Context, path string) error {
 		return err
 	}
 	defer listener.Close()
-	server := &http.Server{Handler: handler(status), ReadHeaderTimeout: 3 * time.Second, WriteTimeout: 3 * time.Second, IdleTimeout: 3 * time.Second, MaxHeaderBytes: 4096}
+	var audit *os.File
+	if auditPath := os.Getenv("HOPNODE_POC_AUDIT_FILE"); auditPath != "" {
+		audit, err = os.OpenFile(auditPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if err != nil {
+			return fmt.Errorf("create private POC audit: %w", err)
+		}
+		defer audit.Close()
+	}
+	server := newServer(status, audit)
 	go func() {
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 3*time.Second)
