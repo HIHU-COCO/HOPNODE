@@ -10,14 +10,14 @@
 | --- | --- | --- | --- |
 | T00 | DONE | HIHU-COCO / 集成 | test-environment.md、risks.md、完整 F/A 台账 |
 | T01 | DONE | HIHU-COCO / 集成 | pnpm check/build、开发服务、Go build/test/vet、Windows/Linux Rust fmt/clippy/test/build PASS；见 test-results/T00-T01-baseline.md、pocs/desktop-runtime.md |
-| T02 | DONE | HIHU-COCO / 集成 | PR #1已真实触发CI；c2125fc的双平台Go/Rust、前端与Ubuntu deb smoke全部PASS，Actions run 39195425895；后续提交独立复验 |
+| T02 | DONE | HIHU-COCO / 集成 | PR #1已真实触发CI；7046b91的双平台Go/Rust、前端与Ubuntu deb smoke全部PASS，Actions run 39198868346；后续提交独立复验 |
 | T03 | BLOCKED | HIHU-COCO / 集成 | 已有Windows、WSL22.04、授权LAN Ubuntu22.04 Desktop；后者SSH/PTY/SFTP通过；缺完整版本/角色真机矩阵、跨网和隔离部署 |
 | P01 | BLOCKED | HIHU-COCO / 集成 | 只读前置检查和4项单测PASS；缺隔离 Headscale/DERP 与不同网络端点；ADR-network.md |
 | P02 | BLOCKED | ssh_finish / poc/ssh | Windows→隔离Ubuntu及独立LAN Ubuntu22.04命令/PTY/10MiB SFTP PASS；已修单pin算法协商；缺Windows sshd与跨平台长任务实测；tests/pocs/ssh/report.md |
 | P03 | IN_PROGRESS | mcp_finish / poc/mcp | Codex0.153.4真实echo/预期错误/status与2025-06-18协商PASS；SDK取消/race PASS；Codex协议取消尚未证实；test-results/P03-mcp-2026-10-19.md |
-| P04 | BLOCKED | desktop_finish、mcp_finish / 集成 | Windows NSIS安装/内嵌GUI真实IPC/卸载PASS；WSL deb安装/desktop-entry启动/UDS/systemd PASS；缺SCM及完整平台/身份矩阵；见P04报告 |
+| P04 | BLOCKED | desktop_finish、mcp_finish / 集成 | Windows NSIS安装/真实GUI IPC/卸载PASS；独立Ubuntu22.04 X11工程deb安装/系统desktop入口启动/显示刷新/内核PID核验UDS/退出后Core/卸载复查PASS，暂存与user systemd亦PASS；异常unit启动清理回归3PASS；缺SCM、24.04及完整版本/身份矩阵；见P04报告 |
 | P05 | BLOCKED | HIHU-COCO / 集成 | 已形成 ADR-0001-v1-stack.md 联合评审；真实Codex调用已有证据，跨网络/完整平台/服务身份风险未关闭，G1未通过 |
-| K01 | TODO | HIHU-COCO / 集成 | 独立DRAFT见proposals/K01-contract-draft.md；未冻结，正式实施依赖P05，尚未验收 |
+| K01 | TODO | HIHU-COCO / 集成 | 独立DRAFT矩阵及contracts-draft三schema/35正反例/26工具校验PASS；Directory/完整事件/类型生成待补；未冻结，正式实施依赖P05 |
 | K02 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K03 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K04 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |

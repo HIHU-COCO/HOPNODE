@@ -10,9 +10,10 @@
 | Node | 26.7.0（本机） | 实际 node --version；CI 使用固定 26.7.0 |
 | pnpm | 11.0.9 | packageManager 固定 |
 | React / Ant Design | 19.3.1 / 6.6.6 | npm 官方 registry、pnpm-lock.yaml；Windows/Linux 前端检查和真实 Windows WebView |
-| Tauri / tauri-build | 2.12.3 / 2.7.3 | crates.io、Cargo.lock；Windows/Linux Rust、NSIS/deb 构建；API JS 2.12.4 / CLI 2.12.3 |
-| SSH / SFTP | x/crypto 0.58.0 / pkg/sftp 1.13.11 | 独立 P02 go.mod/go.sum；Windows客户端→隔离Ubuntu OpenSSH8.9p1真实命令/PTY/10MiB |
-| MCP Go SDK | 1.7.0 | P03 go.mod/go.sum与真实stdio测试；隔离Codex0.153.4已注册但未登录，模型真调用未验证 |
+| Tauri / tauri-build | 2.12.3 / 2.7.3 | crates.io、Cargo.lock；Windows/Linux Rust、NSIS/deb构建；独立Ubuntu22.04 X11工程deb安装/Gio系统desktop入口/IPC/卸载PASS；API JS 2.12.4 / CLI 2.12.3 |
+| SSH / SFTP | x/crypto 0.58.0 / pkg/sftp 1.13.11 | 独立P02 go.mod/go.sum；Windows客户端→隔离与独立LAN Ubuntu OpenSSH8.9p1命令/PTY/10MiB；已pin算法协商回归 |
+| MCP Go SDK | 1.7.0 | P03 go.mod/go.sum与stdio测试；Codex0.153.4真实echo/错误/status PASS，实际协议2025-06-18；客户端取消未证实 |
+| JSON Schema 草案验证器 | google/jsonschema-go 0.4.3 | contracts-draft独立模块，2020-12候选schema与正反例；未冻结生产契约 |
 | go-winio / x/sys | 0.6.4 / 0.49.0 | 本机IPC/SCM POC独立模块；不表示系统服务产品验收 |
 | Headscale / DERP | 未冻结 | 缺隔离部署，不写 latest 为正式约束 |
 

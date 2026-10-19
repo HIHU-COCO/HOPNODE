@@ -34,3 +34,5 @@ Linux 工程预览使用 `tauri.linux.conf.json` 将打包产品名设为 ASCII 
 - Ubuntu 22.04 X11 工程 `.deb` 的安装/Gio 系统入口/卸载已有真机证据；必须补 GNOME 菜单人工操作、完整功能及 Ubuntu 24.04 / Wayland 等矩阵，WSL 不等价。
 - 已取得两轮 Ubuntu 22.04 X11 GUI 终止后用户态 Core 独立运行证据；必须继续补 Windows Service、系统级 systemd、用户注销/系统重启、跨身份拒绝访问和原生托盘关闭/恢复。
 - P04 当前不能标 DONE；证据见 `docs/implementation/test-results/pocs/desktop-runtime.md`。
+
+集成验证方案：在现有双平台 POC 检查和 Go CI 中执行纯 Python 的 user-unit 异常清理回归；在已有 GTK/Gio 依赖的 Ubuntu Rust CI 中执行真实 Gio `/usr/bin/sleep` 生命周期夹具。前者无需 systemd，后者只创建临时 desktop 文件和自有 sleep 进程，均不安装包或服务；它们不能替代上述真机 GUI 证据。

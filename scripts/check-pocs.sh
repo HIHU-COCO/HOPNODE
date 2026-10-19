@@ -9,3 +9,4 @@ for module in tests/pocs/*/go.mod; do
   (cd "$(dirname "$module")" && go test "${@}" ./... && go vet ./...)
 done
 python3 -m unittest discover -s tests/pocs/network -p 'test_*.py' -v
+python3 tests/pocs/desktop-service/test-user-unit.py

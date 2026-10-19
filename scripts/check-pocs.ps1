@@ -20,4 +20,6 @@ Push-Location $taskRoot
 try {
   python -m unittest discover -s tests/pocs/network -p 'test_*.py' -v
   if ($LASTEXITCODE -ne 0) { throw 'Network preflight tests failed' }
+  python tests/pocs/desktop-service/test-user-unit.py
+  if ($LASTEXITCODE -ne 0) { throw 'Transient user-unit cleanup regressions failed' }
 } finally { Pop-Location }

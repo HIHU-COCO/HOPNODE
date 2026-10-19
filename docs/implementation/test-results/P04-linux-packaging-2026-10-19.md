@@ -43,4 +43,6 @@ Windows NSIS 当前用户安装→内嵌前端真实 IPC→卸载记录见 `pocs
 | linux/hopnode-desktop-poc_0.1.0_amd64.deb | 55449492 | 1890590155d92b2d882b426fd4d8c012b6695ed658f6840e2b82f062a08108ea |
 | windows/hopnode-desktop-poc_0.1.0_x64-setup.exe | 2864489 | 5d1f7c91a1afa60ab6946a4a97c3164397433d56e0c2a861033fe0240e829b22 |
 
-Ubuntu Desktop 22.04/24.04 GNOME 菜单/Wayland/X11 与 Ubuntu Server 22.04/24.04 全新安装、系统服务身份/注销/重启/升级恢复均 NOT_RUN。P04 保持 BLOCKED，A01–A27 仍 0/27 PASS。
+后续独立 Ubuntu Desktop 22.04 GNOME/X11 已补齐工程 deb 实际安装、Gio 系统 desktop 入口启动、真实 GUI 显示/刷新/IPC 及卸载，见 [真机补充记录](pocs/desktop-runtime.md) 与 [运行步骤](../../../../tests/pocs/desktop-service/ubuntu-desktop-probe.md)。此处保留历史 WSLg 警告及其原始边界。
+
+Ubuntu Desktop 24.04、两版本 Wayland/完整视觉/托盘/应用抽屉人工点击、Ubuntu Server 22.04/24.04 全新安装、系统服务身份/注销/重启/升级恢复均 NOT_RUN。P04 保持 BLOCKED，A01–A27 仍 0/27 PASS。

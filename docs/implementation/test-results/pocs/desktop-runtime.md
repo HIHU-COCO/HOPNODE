@@ -142,3 +142,5 @@
 | MCP / 不同网络 / DERP | NOT_RUN | 此 POC 没有这些能力，不属于本地 IPC 检查 |
 
 任务状态建议：T01 的桌面工程子项可以提交集成审查；P04 保持 BLOCKED，不能标 DONE 或认定 A15–A18/A24 已通过。下一个依赖是补齐真实平台、安装和系统服务测试，再进入 P05 联合评审。
+
+2026-10-19 集成复验：Windows `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/check-pocs.ps1` 与 WSL `bash scripts/check-pocs.sh -race` 均退出 0，覆盖五个独立 Go 模块的 test/vet、网络探针 4 项和 user-unit 故障回归 3 项。WSL `/usr/bin/python3 tests/pocs/desktop-service/test-desktop-entry.py` 真实 Gio/sleep 进程归属与回收测试 1 PASS（0.108s），伴随 Python GI 的 ImportWarning，无测试失败。台账校验与 diff check 通过；受版本控制的文件未匹配本次测试凭据或目标信息。新回归已加入对应平台 CI，等待最新提交的远端结果。

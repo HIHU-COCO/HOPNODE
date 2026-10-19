@@ -34,9 +34,11 @@ bash scripts/build-core.sh
 
 本阶段三个 Go 程序仅提供 `version` / `--version` / `--help`。其他命令返回 `FEATURE_NOT_IMPLEMENTED` 与非零码；它们不会安装服务、执行远程操作或伪造成功状态。隔离 POC 使用独立模块，执行方法见 `tests/pocs/*/README.md`。
 
-根 `go test ./...` 不包含独立模块。Windows 执行 `scripts/check-pocs.ps1`，Ubuntu 执行 `bash scripts/check-pocs.sh -race`，分别检查 SSH/MCP/本机 IPC/服务生命周期夹具。
+根 `go test ./...` 不包含独立模块。Windows 执行 `scripts/check-pocs.ps1`，Ubuntu 执行 `bash scripts/check-pocs.sh -race`，检查 SSH/MCP/本机 IPC/服务生命周期及 [K01 候选 schema](tests/pocs/contracts-draft/README.md)。候选契约尚未冻结。
 
 工程预览打包使用 `pnpm --dir apps/desktop tauri build --debug --bundles nsis`（Windows）或 `--bundles deb`（Ubuntu），Ubuntu 再用 `python3 tests/pocs/desktop-service/validate-deb.py <package.deb>` 检查包元数据与桌面入口。这些 debug 包只有诊断界面；Windows NSIS 安装/内嵌页面 IPC/卸载与 WSL deb 安装/启动/卸载证据见 [桌面记录](docs/implementation/test-results/pocs/desktop-runtime.md)、[Linux 记录](docs/implementation/test-results/P04-linux-packaging-2026-10-19.md)。
+
+独立 Ubuntu 22.04 X11 已通过工程 deb 临时安装、从系统 `.desktop` 入口真实启动、显示与刷新、内核 peer PID 核验 UDS、GUI 退出后独立 Core 仍响应，以及卸载复查。暂存 GUI 与 transient user systemd 也已通过，见 [真机验证](tests/pocs/desktop-service/ubuntu-desktop-probe.md)。Windows Codex 0.153.4 真实工具调用与协议协商见 [P03 报告](docs/implementation/test-results/P03-mcp-2026-10-19.md)；CLI 协议取消仍未证实。
 
 ## 当前验证边界
 

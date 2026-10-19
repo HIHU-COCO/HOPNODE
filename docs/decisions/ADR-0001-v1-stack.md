@@ -9,7 +9,7 @@
 | P01 网络 | 只读 Tailscale 前置检查和 4 项脱敏单测通过；链路类型保持 unknown。见 ADR-network.md | 隔离 Headscale/DERP、不同网络的授权端点、阻断 P2P 后回退均未测试 |
 | P02 SSH | Windows客户端→隔离Ubuntu与独立LAN Ubuntu22.04：命令、PTY、中文/空格路径、10MiB SFTP及清理通过；修复并复验单pin密钥算法协商。见 tests/pocs/ssh/report.md | Windows系统sshd、完整Ubuntu矩阵、异常断线长任务和高级config兼容仍未验证 |
 | P03 MCP | 官方 Go SDK stdio/错误/取消/旧协议及Linux race通过；Codex0.153.4真实echo/预期错误/status通过，实际协商2025-06-18。见 P03-mcp-2026-10-19.md | Codex CLI取消尝试未取得协议通知证据；Ubuntu真实Codex调用尚缺 |
-| P04 桌面/IPC | Windows Tauri WebView 调用独立 Go Named Pipe、故障与恢复通过；Ubuntu 22.04 WSL Rust/前端编译和 GUI deb 元数据检查通过。见 desktop-runtime.md 及 Linux 补充报告 | Windows SCM、Ubuntu 22.04/24.04 完整 Desktop/Server、菜单/托盘、注销重启和跨身份矩阵尚未齐备 |
+| P04 桌面/IPC | Windows NSIS安装/真实WebView Named Pipe/卸载通过；独立Ubuntu22.04 X11工程deb安装/系统desktop入口启动/显示刷新/内核peer PID核验UDS/卸载复查通过，暂存及user transient systemd也通过；WSL证据另记。见desktop-runtime.md及P04报告 | Windows SCM、24.04及Server、人工应用抽屉/完整视觉/托盘/Wayland、注销重启和跨身份矩阵尚未齐备 |
 
 ## 保持的架构与候选界限
 
