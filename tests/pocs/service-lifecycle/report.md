@@ -1,12 +1,13 @@
 # P04 系统服务局部 POC 实测报告
 
-作者/执行者：HIHU-COCO。日期：2026-10-19（Asia/Shanghai）。关联任务 P04，F16/F18，A16/A22。结论：Windows 宿主编译/纯状态机测试、显式原生 Job 生命周期测试 PASS；WSL systemd transient 生命周期 PASS；Windows SCM、P04 及产品服务正式验收仍未完成。
+作者/执行者：HIHU-COCO。日期：2026-10-19（Asia/Shanghai）。关联任务 P04，F16/F18，A16/A22。结论：Windows 宿主编译/纯状态机、显式原生 Job、Windows Server 2022 CI 的真实 SCM 正常生命周期及清理局部 PASS；WSL systemd transient 生命周期 PASS。Windows 10/11 完整矩阵、P04 及产品服务正式验收仍未完成。
 
 ## 范围与环境
 
 - 仅新增 `tests/pocs/service-lifecycle/`。独立 Go module 使用 Go 1.27.2、`golang.org/x/sys v0.49.0`；未修改 desktop-service、公共 contracts 或根依赖。
 - 参考本地 `x/sys@v0.49.0/windows/svc/service.go`、`svc/security.go`、Windows Job Object 类型和 syscall 声明；SCM 宿主通过 `windows/svc` 接入。
-- Windows amd64；当前管理员组有效身份检查返回 `False`，没有提权、创建/安装/启动 Windows 服务。
+- 本机 Windows 11 amd64；管理员组有效身份检查返回 `False`，没有提权、创建/安装/启动 Windows 服务。下述独立 Windows Server 2022 CI 不覆盖此历史。
+- 另在一次性 GitHub-hosted `windows-2022` 管理员 runner 执行真实 SCM；证据对应提交 `f2961c3e4ff8fcafb754cd0a082dcbb2fd0b7b13`、run `39202456643`、job `117898129568`。
 - WSL 发行版 Ubuntu-22.04；Linux 内核 `6.18.33.2-microsoft-standard-WSL2`；`systemctl is-system-running` 为 `running`；systemd `249 (249.11-0ubuntu3.22)`；Python 3.10.12。
 - Linux 测试使用已授权 WSL root 会话；具体运行身份字段不输出、不提交。没有使用真实网络设备或读取用户配置。
 
@@ -60,7 +61,7 @@ ok  github.com/HIHU-COCO/HOPNODE/tests/pocs/service-lifecycle  6.101s
 
 命名管道使用随机本任务端点；两次实际 `status --json` 返回的 PID/实例相同，PID 与 native process handle 的 GetProcessId 一致，区别于测试进程自身。只解析允许的协议/PID/实例/OS 字段，不打印含身份的原始 JSON。测试退出后恢复原环境变量；Core binary 留在 ignored artifacts。此结果证明普通当前用户下的一次真实 Job/Named Pipe/停止清理场景，不涉及 SCM 安装、SCM 启停、系统服务身份、注销或重启。
 
-## Windows SCM 管理员 CI 测试准备（未实际开门）
+## Windows SCM 管理员 CI：本机准备与实际运行
 
 新增 `scm_integration_windows_test.go` 和 [SCM-CI.md](SCM-CI.md)，只在本目录施工。独立环境门控 `HOPNODE_POC_RUN_SCM=1` 加两份现存绝对 fixture 路径才启用；默认与路径缺失明确 Skip。开门后权限不够必须 Fail，不提权/UAC、不创建本机普通用户服务。
 
@@ -77,9 +78,25 @@ ok  github.com/HIHU-COCO/HOPNODE/tests/pocs/service-lifecycle  6.101s
 | `go mod verify` / `go vet ./...` | PASS：all modules verified；vet 退出 0 |
 | `go build -mod=readonly -trimpath -o artifacts/hopnode-service-poc.exe .` | PASS，退出 0 |
 | `go test -c -mod=readonly -o artifacts/service-lifecycle.test.exe .` | PASS，退出 0，含 Windows SCM 原生 API 测试代码 |
-| `TestSCMNativeLifecycle` 管理员实际启用 | NOT_RUN：当前本机未提权；准备交由集成负责人配置一次性 CI |
+| `TestSCMNativeLifecycle` 本机管理员实际启用 | NOT_RUN：本机未提权，没有创建服务；此历史结果保留 |
 
-CI 精确运行命令为本 module 下 `go test -mod=readonly -timeout 5m -count=1 -run '^TestSCMNativeLifecycle$' -v ./...`，build/env/绝对路径前检及恢复步骤见 SCM-CI.md。本次只记录实际编译/单元/Skip；尚无真实 SCM PASS。未来 Windows Server 2022 CI 不代替 Windows 10/11 真机矩阵。SCM Running 和管道 ACL 拒绝负例不冒充 LocalSystem 正向 API 或业务健康；产品调用者授权、注销、系统重启、崩溃与升级恢复均未覆盖，P04/正式 A 项保持未完成。
+CI 实际运行命令为本 module 下 `go test -mod=readonly -timeout 5m -count=1 -run '^TestSCMNativeLifecycle$' -v ./...`，build/env/绝对路径前检及恢复步骤见 [SCM-CI.md](SCM-CI.md)。已只读核对提交 `f2961c3e4ff8fcafb754cd0a082dcbb2fd0b7b13` 的 workflow 使用 `windows-2022`、独立双 fixture build、显式门控和此命令；未修改 workflow 或公共台账。
+
+[Windows Go job 117898129568](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39202456643/job/117898129568)（PR run `39202456643`）真实 PASS。集成负责人通过安全 GitHub API 回传七条脱敏 proof，未向日志存储转发 token：
+
+| proof | 实际结果 |
+| --- | --- |
+| Host SHA-256 | `163490a321a1af14a89276a506a42ffce0099a3419f25afcb5d5671060ac0231` |
+| Core SHA-256 | `9f3e74423c881034660656f937b4b297244045c679223187697c7b8ab439771d` |
+| Round 1 | host 5844 / 直接 Core 2464；镜像/LocalSystem 身份、实际 pipe `ERROR_ACCESS_DENIED`、Running→Stopped、PID及两退出码0、原生 handles signaled 全部 PASS |
+| Round 2（Stop/Start 重启） | 新 host 2428 / Core 3728；同样的身份/镜像/ACL拒绝/零退出码/handles 退出后验全部 PASS |
+| 生命周期 | `SCM_LIFECYCLE=PASS` |
+| 最终清理 | `SCM_OWNED_CLEANUP=PASS`；自建服务不存在，已记录进程退出、handles closed |
+| 整项结果 | `TestSCMNativeLifecycle` PASS，0.26s，没有 Skip |
+
+集成负责人另已核验同一 SHA 的 [完整 run 39202456643](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39202456643)：五个 job 全部 `completed/success`，包括上述实际 SCM 和 Ubuntu `.deb` 构建检查。此处记录 CI 状态，不由构建成功推断新增 GUI 真机或正式 A 项验收。
+
+该结果是 Windows Server 2022 的真实正常生命周期与成功清理局部证据，未将本机普通用户 Skip 改成 PASS，也不代替 Windows 10/11 真机矩阵。SCM Running 和管道 ACL 拒绝负例不冒充 LocalSystem 正向 API 或业务健康；正式产品调用者授权、真实失败/外部取消后的完整清理、恢复、注销/系统重启均未覆盖，P04/正式 A 项保持未完成。
 
 ## 实际 systemd 生命周期证据
 
@@ -117,14 +134,15 @@ SYSTEMD_LIFECYCLE_POC=PASS
 | --- | --- | --- |
 | Windows SCM 宿主编译、纯配置/状态机测试 | PASS | 固定 x/sys v0.49.0；fake child 测试仅作单元证据 |
 | Windows 当前用户原生 Job/Named Pipe/Stop/句柄关闭 | PASS | 显式门控测试；实际 2 个本 Job 成员停止后归零；不包含任意宿主崩溃 |
-| Windows Service 安装/启停及跨身份 ACL | NOT_RUN | 会话未提权；未创建 Windows 服务 |
+| Windows Server 2022 CI 的 SCM 创建/两轮启停/重启/删除、原 ACL 跨身份拒绝 | PASS | 上述 run/job；真实 LocalSystem 和镜像/直接子进程核验、零退出码、handles 退出和最终服务不存在 |
+| 本机 Windows 11 SCM / Windows 10/11 完整服务矩阵 | NOT_RUN | 本机仍未提权或创建服务；Server 2022 CI 不替代产品目标系统矩阵 |
 | WSL Ubuntu 22.04 transient systemd + headless CLI | PASS | 真实 systemd/UDS/status/doctor/stop/restart；身份脱敏 |
-| Ubuntu Desktop 22.04/24.04 GUI 真机 | NOT_RUN | 无真实桌面 GUI/.deb/菜单启动环境证据 |
+| Ubuntu Desktop 22.04/24.04 完整 GUI 矩阵 | NOT_RUN | 本目录不覆盖 GUI；22.04 局部安装/Gio/IPC 另见桌面运行时报告，不能替代两版本完整矩阵 |
 | Ubuntu Server 22.04/24.04 CLI/systemd 真机 | NOT_RUN | WSL 不等同正式 Server 环境，未安装生产 Core/CLI .deb |
 | 注销/系统重启、自启、崩溃恢复、升级/卸载 | NOT_RUN | transient unit 不持久安装，未改变主机启动配置 |
 | MCP / 跨网络真实调用 | NOT_RUN | 此目录只验证本机只读 IPC 生命周期 |
 | A16/A22/P04 正式验收 | NOT_RUN | 缺上述正式平台完整矩阵和产品身份策略 |
 
-Windows 宿主采用强制结束自身 job 的 POC 策略，不宣称已支持产品任务的优雅停止/事务恢复。SCM Running 不表示 IPC 已健康。既有 desktop-service 管道 DACL 仅授予进程当前身份；本 POC 未解决不同登录用户访问系统服务的最终权限设计，也未读取任何用户 SSH 凭据。Windows 启动中断/任意崩溃的清理边界仍需真实 SCM/Job 测试，不能由 kill-on-close 标志推断全部场景通过。
+Windows 宿主采用强制结束自身 job 的 POC 策略，不宣称已支持产品任务的优雅停止/事务恢复。SCM Running 不表示 IPC 已健康。既有 desktop-service 管道 DACL 仅授予进程当前身份；本 POC 未解决不同登录用户访问系统服务的最终权限设计，也未读取任何用户 SSH 凭据。Windows 启动中断/任意崩溃的清理边界仍需真实故障 SCM/Job 测试，不能由本次正常生命周期或 kill-on-close 标志推断全部场景通过。
 
-下一步由集成负责人将本局部结果纳入 P04/P05；Windows 授权管理员测试环境、Ubuntu Desktop/Server 真机、服务身份矩阵与持久安装/恢复仍为依赖。没有新增公共契约、没有推送、没有创建 PR；提交以 Git 历史为准。
+下一步由集成负责人将这些局部结果纳入 P04/P05；Windows 10/11 完整服务矩阵、Ubuntu Desktop/Server 真机、产品服务身份与调用者授权、持久安装/恢复仍为依赖。本目录未新增公共契约或自行推送/创建 PR，CI run 与提交按上文索引追溯；文档提交以 Git 历史为准。

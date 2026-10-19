@@ -1,6 +1,6 @@
 # P04 Windows SCM 一次性管理员 CI 验证
 
-作者：HIHU-COCO。日期：2026-10-19（Asia/Shanghai）。关联 P04、F16/F18、A16/A22。此处准备真实 SCM 集成测试；本机普通用户仅编译并明确 Skip，**尚无 SCM 实际运行 PASS**。
+作者：HIHU-COCO。日期：2026-10-19（Asia/Shanghai）。关联 P04、F16/F18、A16/A22。真实 SCM 集成测试已在一次性 Windows Server 2022 CI **局部 PASS**；本机 Windows 11 普通用户仍只编译并明确 Skip。P04 和正式平台矩阵未完成。
 
 ## 最小设计与边界
 
@@ -18,7 +18,7 @@ Core 使用现有身份专属 Named Pipe DACL。独立管理员调用者必须�
 
 ## GitHub `windows-2022` 精确命令
 
-仅由集成负责人在一次性 GitHub-hosted `windows-2022` 管理员 job 加入下列 PowerShell 步骤。Go 1.27.2 已在 PATH，工作目录为仓库根；本目录不修改 `.github/`。该 CI OS 是 Windows Server 2022，不替代 Windows 10/11 真机矩阵。
+下列步骤已由集成负责人加入一次性 GitHub-hosted `windows-2022` 管理员 job，可用于复现已记录的 CI。Go 1.27.2 已在 PATH，工作目录为仓库根；本目录不修改 `.github/`。该 CI OS 是 Windows Server 2022，不替代 Windows 10/11 真机矩阵。
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -77,3 +77,19 @@ go test -c -mod=readonly -o artifacts/service-lifecycle.test.exe .
 ```
 
 2026-10-19 实际本机结果：默认套件 PASS，SCM 与需显式 Core 的原生 Job 测试各明确 Skip；新门控/路径 9 个子项、权限错误 3 个子项、停止成功判定 5 个子项 PASS；mod verify、vet、宿主 build、test -c 均退出 0。格式已 gofmt。本次未开启 SCM、未提权、未创建服务，P04 与正式验收保持未完成。
+
+## 2026-10-19 实际 CI 证据
+
+提交 `f2961c3e4ff8fcafb754cd0a082dcbb2fd0b7b13` 的 [Windows Go job 117898129568](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39202456643/job/117898129568)（PR run `39202456643`，`windows-2022` / Windows Server 2022）已真实开启测试并 PASS。集成负责人通过 GitHub API 读取七条允许字段的 proof；本次只记录这些脱敏结果，并只读核对该提交的 workflow 与测试断言，没有重新调用或保存凭据。
+
+| proof | 实际结果 |
+| --- | --- |
+| Host fixture SHA-256 | `163490a321a1af14a89276a506a42ffce0099a3419f25afcb5d5671060ac0231` |
+| Core fixture SHA-256 | `9f3e74423c881034660656f937b4b297244045c679223187697c7b8ab439771d` |
+| SCM round 1 | PASS：host PID 5844 / 直接 Core PID 2464，镜像及 LocalSystem 身份核验，实际管道 `ERROR_ACCESS_DENIED`；Running → Stopped，PID/两项退出码为 0，记录的进程 handles 均 signaled |
+| SCM round 2（Stop/Start 重启） | PASS：新 host PID 2428 / Core PID 3728；同样的镜像/身份、ACL 拒绝、成功停止和退出后验通过 |
+| 生命周期阶段 | `SCM_LIFECYCLE=PASS`：真实 Start/Running/Stop/Stopped/restart |
+| 最终清理 | `SCM_OWNED_CLEANUP=PASS`：自建服务不存在，已记录 host/Core 全部退出，handles closed |
+| 整项测试 | `TestSCMNativeLifecycle` PASS，0.26 秒；不是 Skip |
+
+本次是一次真实正常生命周期及清理成功路径。结果不改写此前本机 Windows 11 未提升/SCM Skip 的历史；不替代 Windows 10/11 产品服务完整矩阵。保持原 ACL 的跨身份拒绝为负例，LocalSystem 正向 API、正式调用者授权、业务健康、失败/外部取消后的完整回收、恢复、注销/重启仍 NOT_RUN。P04 不标 DONE。

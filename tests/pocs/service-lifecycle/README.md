@@ -21,9 +21,9 @@ SCM 状态按 StartPending → Running → StopPending 转换。Stop/Shutdown �
 
 当前 Windows 会话 `IsAdministrator=False`。默认套件运行无原生进程操作的配置/SCM handler 单元测试，原生 Job 测试明确 Skip/NOT_RUN。额外设置 `HOPNODE_POC_CORE_EXE` 后，`TestOwnedChildNativeLifecycle` 启动本任务隔离构建的 Core，在随机 Named Pipe 上经实际 CLI 校验独立 PID/实例与 Job 成员关系，Stop 后检查主进程退出、整个 Job 活跃进程数为零、CLI 非零退出和句柄关闭。本次显式原生 Job 验证 PASS，无需管理员。
 
-**Windows 服务创建/启停、服务账号 ACL、注销/重启恢复仍 NOT_RUN**。纯状态机 fake child 和上述普通用户 Job 测试均不计作 Windows SCM 真机验收；也不推断任意宿主崩溃、启动中断的行为。
+本机 Windows 11 的 **SCM 创建/启停仍 NOT_RUN**，没有提权或创建服务。纯状态机 fake child 和上述普通用户 Job 测试均不计作 SCM 验收；另有下述 Windows Server 2022 CI 局部证据，不能推断任意宿主崩溃、启动中断或注销/重启行为。
 
-新增默认 Skip 的 `TestSCMNativeLifecycle`，供显式授权的一次性管理员 GitHub `windows-2022` runner 创建随机 manual/LocalSystem 服务，验证两轮真实启停、宿主/直接 Core 原生句柄与身份、保持原管道 ACL 的跨身份拒绝、Delete 后服务不存在及失败清理。本机只编译和默认 Skip，尚未实际执行 SCM。精确 build/env/test 命令及限制见 [SCM-CI.md](SCM-CI.md)；该 Server 2022 CI 不等同 Windows 10/11 验收，Running/管道拒绝不证明正向 API 健康。
+默认 Skip 的 `TestSCMNativeLifecycle` 已在显式授权的一次性管理员 GitHub `windows-2022` runner 真实 PASS：提交 `f2961c3e4ff8fcafb754cd0a082dcbb2fd0b7b13`，[run 39202456643 / Windows Go job 117898129568](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39202456643/job/117898129568)。两轮随机 manual/LocalSystem 服务实际启停（host/Core 5844/2464 → 2428/3728），镜像/身份、原 ACL 的跨身份拒绝、零退出码和 handles signaled 均通过；最终 `SCM_OWNED_CLEANUP=PASS`，服务不存在、handles closed，整项测试 PASS 0.26s。二进制哈希、七条 proof、精确命令和限制见 [SCM-CI.md](SCM-CI.md)。这是 Windows Server 2022 正常生命周期的局部结果；本机未提升历史不变，Windows 10/11 完整矩阵、正向 API/产品授权、恢复与注销/重启仍未验，P04 不标 DONE。
 
 本目录下可执行：
 
