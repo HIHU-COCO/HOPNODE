@@ -31,10 +31,12 @@ type probeOutput struct {
 
 func newServer() *mcp.Server {
 	var active, canceled, sequence atomic.Int64
+	openWorld, destructive := false, false
 	server := mcp.NewServer(&mcp.Implementation{Name: "hopnode", Version: "0.0.0-poc.3"}, nil)
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "poc_probe",
 		Description: "P03 protocol fixture only. Requires device_id=poc-local. Echo returns text; fail returns a tool error; wait blocks until canceled; status exposes fixture cancellation counters. No SSH, filesystem, or production devices.",
+		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true, DestructiveHint: &destructive, OpenWorldHint: &openWorld},
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input probeInput) (*mcp.CallToolResult, probeOutput, error) {
 		if input.DeviceID != "poc-local" {
 			return nil, probeOutput{}, errors.New("POC_DEVICE_REQUIRED: device_id must equal poc-local")
@@ -50,6 +52,7 @@ func newServer() *mcp.Server {
 			defer active.Add(-1)
 			<-ctx.Done()
 			canceled.Add(1)
+			log.New(os.Stderr, "hopnode-poc: ", 0).Print("P03_WAIT_CANCELED")
 			return nil, probeOutput{}, ctx.Err()
 		case "status":
 			output.Active, output.Canceled = active.Load(), canceled.Load()

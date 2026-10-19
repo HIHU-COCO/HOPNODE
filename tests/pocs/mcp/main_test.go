@@ -76,6 +76,10 @@ func TestSDKSubprocess(t *testing.T) {
 	if err != nil || len(tools.Tools) != 1 || tools.Tools[0].Name != "poc_probe" {
 		t.Fatalf("tools=%+v err=%v", tools, err)
 	}
+	annotations := tools.Tools[0].Annotations
+	if annotations == nil || !annotations.ReadOnlyHint || annotations.DestructiveHint == nil || *annotations.DestructiveHint || annotations.OpenWorldHint == nil || *annotations.OpenWorldHint {
+		t.Fatal("fixture must advertise read-only, non-destructive, closed-world behavior")
+	}
 	call := func(action string) (*mcp.CallToolResult, error) {
 		return session.CallTool(ctx, &mcp.CallToolParams{Name: "poc_probe", Arguments: probeInput{DeviceID: "poc-local", Action: action, Message: "中文 stdio"}})
 	}
