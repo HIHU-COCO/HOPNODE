@@ -85,7 +85,8 @@ prepare 实际下载固定版本的两个包并成功校验 chroot 配置，退�
 | Windows 本机协议夹具 | PASS | 真实 SSH / SFTP 字节，单机回环范围 |
 | Windows OpenSSH 受控端 | NOT_RUN | 本机未发现 sshd 服务；需已授权独立 Windows sshd 目标 |
 | WSL Ubuntu 22.04 真实 OpenSSH 受控端 | PASS（局部） | 指定私钥、whoami、PTY、路径与 10 MiB SFTP；同主机隔离回环，非独立机器 |
-| 独立 Ubuntu 22.04 / 24.04 受控机 | NOT_RUN | 尚无独立测试设备证据；WSL 测试不能替代两版本真机矩阵 |
+| 独立 Ubuntu 22.04 受控机 | PASS（局部） | 用户授权 LAN 目标，由主代理执行命令、流与退出码、PTY、10 MiB SFTP；详见后附脱敏证据 |
+| 独立 Ubuntu 24.04 受控机 | NOT_RUN | 尚无该版本独立测试设备证据 |
 | Ubuntu Desktop GUI | NOT_RUN | 本 POC 无桌面安装或 GUI 测试 |
 | Ubuntu Server CLI 安装 | NOT_RUN | 本 POC 未实施正式包安装 |
 | ProxyJump / ssh-agent 两平台认证 | NOT_RUN | 尚无已授权跳板与对应 agent 测试会话，POC 明确不支持 |
@@ -100,9 +101,9 @@ prepare 实际下载固定版本的两个包并成功校验 chroot 配置，退�
 
 本报告不修改状态总表，也不把 P02 或 A20 / A24 标为 DONE / PASS。Git commit 由完成该子任务的提交及主线集成记录追溯；未创建或推送 PR。
 
-## 新授权 LAN Ubuntu 22.04 目标测试计划（尚未连接）
+## 新授权 LAN Ubuntu 22.04 目标测试计划与局部结果
 
-2026-10-19 用户已授权主代理通过 SSH 连接一台局域网 Ubuntu 22.04 查看环境。当前子任务仅审阅本机 POC CLI 并准备流程，未连接该目标，以下全部为 NOT_RUN。主代理负责独立 Host Key 核验、确定授权身份与安全认证注入；只有收到其已核验的专用 known-hosts 和认证接入方式后才执行。目标地址、真实用户名、凭据和原始运行日志保留在忽略的本地交换目录，报告仅记录脱敏结果。
+2026-10-19 用户已授权主代理通过 SSH 连接一台局域网 Ubuntu 22.04 查看环境。子任务负责本机 POC 与只读清单流程，始终未连接该目标或接触密码；主代理独立核验 Host Key、通过内存子进程环境认证并执行远端操作。以下流程编写时为 NOT_RUN；后续主代理完成的局部结果与已核查的脱敏证据列于本节末。目标地址、真实用户名、凭据和原始运行日志保留在忽略的本地交换目录，报告仅记录脱敏结果。
 
 ### 只读 inventory
 
@@ -154,3 +155,49 @@ fi
 PID 1 为 systemd、存在 systemctl 只说明具备查询条件；服务安装/启停、写入 `/etc/systemd/system`、daemon-reload 或 sudo 授权不是本轮测试的一部分。软件包验证先查询架构及依赖版本；未来 `.deb` 可先本地或只读地用 `dpkg-deb --info/--contents` 检查，安装、升级、卸载须有明确授权及隔离数据策略。
 
 这台目标若完成上述流程，只能补充“独立 Ubuntu 22.04 目标、Windows 客户端、LAN SSH/SFTP/PTY”的局部真实证据；不能标记 Ubuntu 24.04、Ubuntu GUI/Server 安装、跨网络、NAT 穿透或 DERP 验收通过。
+
+### 已钉住单个密钥算法的协商修复
+
+主代理对新目标使用与原 Windows known-hosts 匹配的单个 Ed25519 记录时，发现 Go 默认先协商服务器提供的另一种密钥类型，导致 callback 报 Host Key changed；这次错误发生在认证前，不能据此推断原 Ed25519 公钥变化。主代理随后分别核验其余算法也与既有记录一致。子任务未连接目标、未接触密码或复制任何实际主机键。
+
+本次修复在握手前使用 knownhosts 自身的目标匹配规则获取已钉住的密钥类型，并设置 HostKeyAlgorithms；哈希名称、端口和 Host 匹配继续交给库处理。RSA 映射到受支持的 SHA-2 签名；CA 记录允许受支持的证书算法，真实证书/公钥/撤销检查仍由原 callback 执行。未知主机没有钉住算法时继续原显式指纹流程。修复不追加任何新扫描键，也不放宽真实密钥变更检查。
+
+新增 `TestPinnedEd25519WithMultipleServerHostKeys`：服务端同时提供 ECDSA 与 Ed25519，分别以普通、哈希主机名仅 pin Ed25519，均成功协商该已钉住键且 known-hosts 不变；改 pin 另一把 Ed25519 后，即使提供实际服务器指纹也仍拒绝为 SSH_HOST_KEY_CHANGED，并保留原记录。`TestPinnedCertificateAuthorityAndRevocation` 还验证 Ed25519 CA 签发 ECDSA 主机证书可用，撤销该 CA 后拒绝且不改 known-hosts。Windows `go test -v ./...` 10 项顶层测试 PASS（`ok hopnode/pocs/ssh 2.064s`）；`go vet ./...` PASS；WSL `go test -race ./...` PASS（`ok hopnode/pocs/ssh 4.979s`）。该回归全部使用单机回环合成身份，不含真实目标元数据。
+
+### 主代理执行的 LAN 目标脱敏结果
+
+子任务只读取主代理提供的本地脱敏证据 `.tools/authorized-ubuntu-22/semantics.json`、`sftp.json`，未读取凭据或连接目标；文件未加入 Git。结果如下：
+
+| 项目 | 实际结果 |
+| --- | --- |
+| Host Key | 主代理确认专用 known-hosts 中各条键均与 Windows 用户既有记录匹配，未盲目新增未知键 |
+| 密码认证 / whoami | PASS，认证用户匹配；本地退出码 0；真实账号未收入报告 |
+| 非 PTY 流与退出码 | PASS，stdout 为合成标记 `HOPNODE_STDOUT`，stderr 为 `HOPNODE_STDERR`，远端 exit 7 准确；CLI 本地 exit 1 是预期错误返回 |
+| PTY | PASS，返回合成标记和 `24 80`，exit 0 |
+| SFTP | PASS，10,485,760 字节中文/空格文件原始字节与目录列举校验通过；唯一父目录 mode 700 |
+| 清理 | PASS，探针子目录已清理，唯一空父目录 `rmdir` 成功，exit 0，无本轮数据残留 |
+| GUI / 系统服务 / 后台断线 | NOT_RUN，本轮数据不能替代这些验收 |
+| 跨网络 / DERP | NOT_RUN，LAN 测试不构成这些链路证据 |
+
+### 只读清单脚本与待填模板
+
+新增 [`remote-inventory.sh`](remote-inventory.sh)，由主代理在安全认证通道将脚本内容交给 Bash 执行，无需上传或落盘。脚本只输出固定键及受限值，涵盖 OS / 架构、普通用户权限分类、桌面会话入口数量与相关进程是否存在、SSH 环境的显示变量是否设置、PID 1 / systemd 查询、指定包版本和指定服务状态。它不输出用户名、主机名、私有 IP、完整环境值或配置内容，不调用 sudo、不写文件、不修改服务。
+
+系统命令存在性只搜索固定系统 PATH，不能据 `binary.*.present=no` 认定用户自定义路径没有安装。SSH 的桌面变量与 GUI 进程存在性也不构成实际可交互桌面验收。`access_writable` 只是当前账号访问权限检查，不进行了写入。
+
+本机 `bash -n` PASS；WSL 本地烟测成功（129 个字段），人工注入的 DISPLAY 地址及桌面私有标记未出现在输出。远端 inventory 待主代理执行并给出脱敏结果，以下模板仍为 NOT_RUN：
+
+| 维度 | 待记录的脱敏结果 | 当前状态 |
+| --- | --- | --- |
+| 平台 | Ubuntu 版本、架构；不记录主机名/地址 | NOT_RUN |
+| 普通用户 | 是否 root、管理组成员分类、临时目录访问权限；不记录真实账号 | NOT_RUN |
+| 桌面 | 会话入口、桌面进程、显示变量分类；交互权限另验 | NOT_RUN |
+| systemd | PID 1 / 查询状态；服务安装与启停权限不推断 | NOT_RUN |
+| 依赖 / 包 | 固定清单已安装及版本 / 缺失；用户路径安装另查 | NOT_RUN |
+| 服务 | 只读 LoadState / ActiveState / SubState | NOT_RUN |
+
+### 小于 10 秒的 Linux session 生命周期调查方案（未执行）
+
+建议仅调查“正常结束 SSH 连接后，显式后台化的短任务是否完成”，由主代理执行。先创建并验证独立 mode 700 临时父目录；在该目录中用 `nohup sh -c 'sleep 2; printf "completed\n" > result' </dev/null > stdout 2> stderr &` 启动最长约两秒的本轮子任务，将 PID 仅写入该目录并返回合成启动标记。记录启动命令耗时，确保 SSH session / 连接已在任务结束前正常关闭；随后等待约三秒，用新 SSH 连接查询 `result` 是否为预期标记。任务不运行 sudo，不安装守护程序，不发送终止信号；只清理已知的本轮 result/stdout/stderr/pid 文件并 rmdir 空父目录，失败保留现场。
+
+该方法只研究显式 nohup、标准流重定向下的正常 session / 连接关闭，不能标为 TCP 非正常断线、链路丢包、注销、重启、systemd 托管或可靠持久化 task-runner。若启动命令直到任务完成才返回，也不能声称任务在断线后存活。整个调查约五秒，控制在十秒内；结果未知，目前 NOT_RUN。

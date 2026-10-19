@@ -77,6 +77,8 @@ go run . -host 192.0.2.10 -port 2222 -user poc-user `
 
 首次无已知主机记录且未提供正确的 `-trust-host-key`，返回 `SSH_HOST_KEY_UNKNOWN` 并展示待独立核验的指纹；不会写入已知主机文件。批准未知指纹后仅追加到显式指定的独立文件。后续连接省略 `-trust-host-key`。已记录主机的密钥变更始终返回 `SSH_HOST_KEY_CHANGED`，即使提供新的批准指纹也不会覆盖旧记录。探针不读取或修改默认 `~/.ssh/known_hosts`。
 
+对已记录的主机，协商只选择该地址已钉住的密钥类型，避免多密钥服务器优先选择另一种未钉住的类型而造成误报。普通与哈希 known-hosts 名称均由 Go knownhosts 自身匹配；RSA 使用 SHA-2 签名算法，纯 SHA-1 服务器不在这条路径自动降级。协商算法的选择不替代后续公钥字节与撤销校验，真实变更仍拒绝。
+
 ## 基础 SSH config
 
 ```text

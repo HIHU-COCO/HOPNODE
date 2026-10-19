@@ -6,7 +6,9 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/pem"
 	"errors"
@@ -25,6 +27,7 @@ import (
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 type fixture struct {
@@ -38,7 +41,7 @@ type fixture struct {
 	connections []net.Conn
 }
 
-func newFixture(t *testing.T) *fixture {
+func newFixture(t *testing.T, additionalHostKeys ...ssh.Signer) *fixture {
 	t.Helper()
 	_, hostKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -73,6 +76,9 @@ func newFixture(t *testing.T) *fixture {
 		return nil, errors.New("fixture key rejected")
 	}}
 	config.AddHostKey(signer)
+	for _, extra := range additionalHostKeys {
+		config.AddHostKey(extra)
+	}
 	f.wg.Add(1)
 	go func() {
 		defer f.wg.Done()
@@ -284,6 +290,116 @@ func TestHostKeyUnknownTrustAndChanged(t *testing.T) {
 	after, _ := os.ReadFile(o.KnownHostsPath)
 	if !bytes.Equal(before, after) {
 		t.Fatal("changed key overwrote known-hosts")
+	}
+}
+
+func TestPinnedEd25519WithMultipleServerHostKeys(t *testing.T) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ecdsaSigner, err := ssh.NewSignerFromKey(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := newFixture(t, ecdsaSigner)
+	for _, hashed := range []bool{false, true} {
+		t.Run(fmt.Sprint(hashed), func(t *testing.T) {
+			o := f.options(t)
+			o.TrustFingerprint = ""
+			host := knownhosts.Normalize(f.listener.Addr().String())
+			if hashed {
+				host = knownhosts.HashHostname(host)
+			}
+			pinned := []byte(host + " " + strings.TrimSpace(string(ssh.MarshalAuthorizedKey(f.key.PublicKey()))) + "\n")
+			if err := os.WriteFile(o.KnownHostsPath, pinned, 0600); err != nil {
+				t.Fatal(err)
+			}
+			c, err := connect(context.Background(), o)
+			if err != nil {
+				t.Fatalf("Ed25519-only pin must select that key instead of default ECDSA: %v", err)
+			}
+			c.Close()
+			after, _ := os.ReadFile(o.KnownHostsPath)
+			if !bytes.Equal(pinned, after) {
+				t.Fatal("successful negotiation changed pinned host keys")
+			}
+			_, other, err := ed25519.GenerateKey(rand.Reader)
+			if err != nil {
+				t.Fatal(err)
+			}
+			otherSigner, err := ssh.NewSignerFromKey(other)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wrongPin := []byte(host + " " + strings.TrimSpace(string(ssh.MarshalAuthorizedKey(otherSigner.PublicKey()))) + "\n")
+			if err := os.WriteFile(o.KnownHostsPath, wrongPin, 0600); err != nil {
+				t.Fatal(err)
+			}
+			o.TrustFingerprint = ssh.FingerprintSHA256(f.key.PublicKey())
+			if c, err := connect(context.Background(), o); err == nil {
+				c.Close()
+				t.Fatal("different Ed25519 key accepted")
+			} else if !strings.Contains(err.Error(), ErrHostKeyChanged.Error()) {
+				t.Fatalf("different Ed25519 key not rejected as changed: %v", err)
+			}
+			after, _ = os.ReadFile(o.KnownHostsPath)
+			if !bytes.Equal(wrongPin, after) {
+				t.Fatal("rejected host key rewrote pin")
+			}
+		})
+	}
+}
+
+func TestPinnedCertificateAuthorityAndRevocation(t *testing.T) {
+	_, authorityKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	authority, err := ssh.NewSignerFromKey(authorityKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leaf, err := ssh.NewSignerFromKey(leafKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert := &ssh.Certificate{Key: leaf.PublicKey(), CertType: ssh.HostCert, ValidPrincipals: []string{"127.0.0.1"}, ValidAfter: uint64(time.Now().Add(-time.Minute).Unix()), ValidBefore: uint64(time.Now().Add(time.Minute).Unix())}
+	if err := cert.SignCert(rand.Reader, authority); err != nil {
+		t.Fatal(err)
+	}
+	certSigner, err := ssh.NewCertSigner(cert, leaf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := newFixture(t, certSigner)
+	o := f.options(t)
+	o.TrustFingerprint = ""
+	host := knownhosts.Normalize(f.listener.Addr().String())
+	pin := []byte("@cert-authority " + host + " " + strings.TrimSpace(string(ssh.MarshalAuthorizedKey(authority.PublicKey()))) + "\n")
+	if err := os.WriteFile(o.KnownHostsPath, pin, 0600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := connect(context.Background(), o)
+	if err != nil {
+		t.Fatalf("Ed25519 CA must allow its ECDSA host certificate: %v", err)
+	}
+	c.Close()
+	revoked := append(bytes.Clone(pin), []byte("@revoked "+host+" "+strings.TrimSpace(string(ssh.MarshalAuthorizedKey(authority.PublicKey())))+"\n")...)
+	if err := os.WriteFile(o.KnownHostsPath, revoked, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if c, err := connect(context.Background(), o); err == nil {
+		c.Close()
+		t.Fatal("certificate from revoked authority accepted")
+	}
+	after, _ := os.ReadFile(o.KnownHostsPath)
+	if !bytes.Equal(after, revoked) {
+		t.Fatal("revoked authority check changed known-hosts")
 	}
 }
 

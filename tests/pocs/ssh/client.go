@@ -33,6 +33,77 @@ type Options struct {
 	Timeout                                               time.Duration
 }
 
+// algorithmProbe is used only to ask knownhosts for matching records. Its bytes
+// cannot be a valid SSH public key, and it can never verify a signature.
+type algorithmProbe struct{}
+
+func (algorithmProbe) Type() string    { return "hopnode-poc-algorithm-query" }
+func (algorithmProbe) Marshal() []byte { return []byte("hopnode-poc-algorithm-query") }
+func (algorithmProbe) Verify([]byte, *ssh.Signature) error {
+	return errors.New("host-key algorithm probe cannot verify signatures")
+}
+
+// pinnedHostKeyAlgorithms keeps negotiation within the keys already trusted for
+// this address. Use knownhosts itself for hashed names, patterns and port rules.
+// Actual key bytes (including revocations/certificates) are still checked later.
+func pinnedHostKeyAlgorithms(file, address string, remote net.Addr) ([]string, error) {
+	if file == "" {
+		return nil, errors.New("known-hosts path is required")
+	}
+	check, err := knownhosts.New(file)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil // Unknown host: retain the explicit fingerprint flow.
+	}
+	if err != nil {
+		return nil, fmt.Errorf("invalid known-hosts: %w", err)
+	}
+	err = check(address, remote, algorithmProbe{})
+	var mismatch *knownhosts.KeyError
+	if !errors.As(err, &mismatch) {
+		return nil, fmt.Errorf("could not determine pinned host-key algorithms: %w", err)
+	}
+	if len(mismatch.Want) == 0 {
+		return nil, nil
+	}
+	contents, err := os.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(contents), "\n")
+	types := map[string]bool{}
+	certAuthority := false
+	for _, known := range mismatch.Want {
+		if known.Line < 1 || known.Line > len(lines) {
+			return nil, errors.New("known-hosts changed while reading algorithm metadata")
+		}
+		if strings.HasPrefix(strings.TrimSpace(lines[known.Line-1]), "@cert-authority ") || strings.HasPrefix(strings.TrimSpace(lines[known.Line-1]), "@cert-authority\t") {
+			certAuthority = true // A CA can sign host certificates of other key types.
+		} else {
+			types[known.Key.Type()] = true
+		}
+	}
+	var algorithms []string
+	for _, algorithm := range ssh.SupportedAlgorithms().HostKeys {
+		if strings.Contains(algorithm, "-cert-") {
+			if certAuthority {
+				algorithms = append(algorithms, algorithm)
+			}
+			continue
+		}
+		keyType := algorithm
+		if algorithm == ssh.KeyAlgoRSASHA256 || algorithm == ssh.KeyAlgoRSASHA512 {
+			keyType = ssh.KeyAlgoRSA
+		}
+		if types[keyType] {
+			algorithms = append(algorithms, algorithm)
+		}
+	}
+	if len(algorithms) == 0 {
+		return nil, errors.New("pinned host key has no supported secure negotiation algorithm")
+	}
+	return algorithms, nil
+}
+
 // hostVerifier requires explicit out-of-band fingerprint approval only for unknown hosts.
 // Changed keys always fail, even when the caller supplies a trust fingerprint.
 func hostVerifier(file, approved string) ssh.HostKeyCallback {
@@ -124,6 +195,11 @@ func connect(ctx context.Context, o Options) (*ssh.Client, error) {
 		_ = conn.Close()
 		return nil, err
 	}
+	algorithms, err := pinnedHostKeyAlgorithms(o.KnownHostsPath, address, conn.RemoteAddr())
+	if err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
 	done := make(chan struct{})
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -135,7 +211,7 @@ func connect(ctx context.Context, o Options) (*ssh.Client, error) {
 		case <-done:
 		}
 	}()
-	cc, channels, requests, err := ssh.NewClientConn(conn, address, &ssh.ClientConfig{User: o.User, Auth: auth, HostKeyCallback: hostVerifier(o.KnownHostsPath, o.TrustFingerprint)})
+	cc, channels, requests, err := ssh.NewClientConn(conn, address, &ssh.ClientConfig{User: o.User, Auth: auth, HostKeyCallback: hostVerifier(o.KnownHostsPath, o.TrustFingerprint), HostKeyAlgorithms: algorithms})
 	close(done)
 	wg.Wait()
 	if err != nil {
