@@ -40,6 +40,8 @@ bash scripts/build-core.sh
 
 独立 Ubuntu 22.04 X11 已通过工程 deb 临时安装、从系统 `.desktop` 入口真实启动、显示与刷新、内核 peer PID 核验 UDS、GUI 退出后独立 Core 仍响应，以及卸载复查。暂存 GUI 与 transient user systemd 也已通过，见 [真机验证](tests/pocs/desktop-service/ubuntu-desktop-probe.md)。Windows Codex 0.153.4 真实工具调用与协议协商见 [P03 报告](docs/implementation/test-results/P03-mcp-2026-10-19.md)；CLI 协议取消仍未证实。
 
+Windows Server 2022 临时 CI 的真实 SCM 启停/服务身份/ACL负例/删除记录见 [SCM 实证](tests/pocs/service-lifecycle/SCM-CI.md)。Headscale/Tailscale 单机隔离机制记录见 [P01 结果](tests/pocs/network-isolated/RESULTS.md)；这些局部结果不替代 Windows 10/11 或不同网络/DERP 验收。
+
 ## 当前验证边界
 
 工程 CI 检查 Go、前端、Rust 和隔离 POC。真实网络集成与发布工作流设为手动门禁，在缺少驱动/验收时明确失败。不存在正式 Release。完整产品完成要求为 F01–F18、A01–A27 真实验证，并交付 Windows GUI/CLI/Service、Ubuntu GUI `.deb`、Ubuntu Core/CLI `.deb`。

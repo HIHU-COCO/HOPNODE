@@ -15,6 +15,6 @@
 | MCP Go SDK | 1.7.0 | P03 go.mod/go.sum与stdio测试；Codex0.153.4真实echo/错误/status PASS，实际协议2025-06-18；客户端取消未证实 |
 | JSON Schema 草案验证器 | google/jsonschema-go 0.4.3 | contracts-draft独立模块，2020-12候选schema与正反例；未冻结生产契约 |
 | go-winio / x/sys | 0.6.4 / 0.49.0 | 本机IPC/SCM POC独立模块；不表示系统服务产品验收 |
-| Headscale / DERP | 未冻结 | 缺隔离部署，不写 latest 为正式约束 |
+| Headscale / 内嵌DERP / 便携Tailscale | 候选0.29.5 / 同二进制内嵌 / 1.98.4，未冻结 | 官方资产摘要逐字节核验；WSL单机userspace机制PASS；非公网/不同网络/强制DERP结果，既有Tailscale版本不变 |
 
 便携工具位于忽略目录 .tools，不提交工具链、私钥、数据库或构建产物。

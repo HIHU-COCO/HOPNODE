@@ -6,10 +6,10 @@
 
 | POC | 结论与证据 | 尚未关闭的门槛 |
 | --- | --- | --- |
-| P01 网络 | 只读 Tailscale 前置检查和 4 项脱敏单测通过；链路类型保持 unknown。见 ADR-network.md | 隔离 Headscale/DERP、不同网络的授权端点、阻断 P2P 后回退均未测试 |
+| P01 网络 | 独立Headscale0.29.5/TS1.98.4单机userspace的TLS正负例、双节点/合成TCP/策略切换/精确节点expire/旧key拒绝及清理通过；只读探针另记。见ADR-network.md | 两机/不同网络、公网DERP和独立边界阻断P2P后业务回退未验；单机disco不作业务链路证据 |
 | P02 SSH | Windows客户端→隔离Ubuntu与独立LAN Ubuntu22.04：命令、PTY、中文/空格路径、10MiB SFTP及清理通过；修复并复验单pin密钥算法协商。见 tests/pocs/ssh/report.md | Windows系统sshd、完整Ubuntu矩阵、异常断线长任务和高级config兼容仍未验证 |
 | P03 MCP | 官方 Go SDK stdio/错误/取消/旧协议及Linux race通过；Codex0.153.4真实echo/预期错误/status通过，实际协商2025-06-18。见 P03-mcp-2026-10-19.md | Codex CLI取消尝试未取得协议通知证据；Ubuntu真实Codex调用尚缺 |
-| P04 桌面/IPC | Windows NSIS安装/真实WebView Named Pipe/卸载通过；独立Ubuntu22.04 X11工程deb安装/系统desktop入口启动/显示刷新/内核peer PID核验UDS/卸载复查通过，暂存及user transient systemd也通过；WSL证据另记。见desktop-runtime.md及P04报告 | Windows SCM、24.04及Server、人工应用抽屉/完整视觉/托盘/Wayland、注销重启和跨身份矩阵尚未齐备 |
+| P04 桌面/IPC | Windows NSIS/真实WebView Named Pipe/卸载通过；Server2022 CI真实SCM启停/ACL负例/删除通过；独立Ubuntu22.04 X11工程deb安装/系统desktop入口/显示刷新/内核peer PID核验UDS/卸载通过，user systemd也通过。见desktop-runtime.md及SCM报告 | Win10/11服务、24.04及Server、完整视觉/托盘/Wayland、注销重启和正向跨身份授权矩阵尚未齐备 |
 
 ## 保持的架构与候选界限
 
@@ -28,3 +28,5 @@ Plan 允许在四项 POC 均有明确结论后启动评审，但 G1 要求阻断
 资源补齐后依次复测原 POC，更新实证及风险，再决定 G1。不得删除 Ubuntu GUI、系统服务、托管组网或 Codex 真调用要求来通过门槛。性能测量草案见 docs/implementation/performance-baseline.md，尚不是 A25 验收结果。
 
 Plan §10.2 允许缺少实机时先做契约。因此独立K01候选矩阵与机器验证可以继续，见 `docs/implementation/proposals/K01-contract-draft.md`；这不等于P05/G1通过或K01冻结，不启动依赖冻结接口的K02及六条生产线。
+
+有条件施工顺序的具体替代提案见 `docs/implementation/proposals/P05-conditional-development.md`，目前 PROPOSED、未授权、未生效。若获得用户明确授权，再记录新的出口决定；在此之前不修改上述门禁状态。
