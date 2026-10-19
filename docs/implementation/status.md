@@ -10,12 +10,12 @@
 | --- | --- | --- | --- |
 | T00 | DONE | HIHU-COCO / 集成 | test-environment.md、risks.md、完整 F/A 台账 |
 | T01 | IN_PROGRESS | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| T02 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| T03 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| P01 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| P02 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| P03 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| P04 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
+| T02 | IN_PROGRESS | HIHU-COCO / 集成 | 首次远端 CI 已触发；桌面工作树未集成导致失败，集成后复测 |
+| T03 | BLOCKED | HIHU-COCO / 集成 | 已有 Windows + WSL22.04，缺完整真机矩阵、跨网和隔离部署 |
+| P01 | BLOCKED | HIHU-COCO / 集成 | 只读前置检查和4项单测PASS；缺隔离 Headscale/DERP 与不同网络端点；ADR-network.md |
+| P02 | IN_PROGRESS | ssh_poc / poc/ssh | 独立工作树隔离 SSH/SFTP POC；真机未提供 |
+| P03 | IN_PROGRESS | mcp_poc / poc/mcp | 官方 SDK stdio 进程测试；不改用户 Codex 配置 |
+| P04 | IN_PROGRESS | desktop_poc / poc/desktop | Tauri/IPC 实测；WSL 不替代 Desktop/Server 验收 |
 | P05 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K01 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K02 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |

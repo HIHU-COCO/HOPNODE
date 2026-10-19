@@ -9,7 +9,7 @@
 | 工具链 | Node 26.7.0、pnpm 11.0.9、Git 2.55；隔离安装 Go 1.27.2、Rust 1.99.1 | PowerShell .ps1 受策略限制，使用 .cmd 或显式进程级执行策略，不修改系统策略 |
 | MSVC | VS BuildTools 18.10，VC.Tools.x86.x64 组件存在 | 桌面 POC 仍需实际编译 |
 | Ubuntu | 已有 WSL Ubuntu 22.04.5 x64；systemd running、WSLg present | 不等同于全新 Ubuntu Desktop/Server；无 24.04；无免密 sudo |
-| Linux 构建依赖 | 初查没有 Go/Rust/gcc/pkg-config/WebKitGTK 4.1 开发包 | 可从 Windows 交叉编译纯 Go；不能将其视为 Linux GUI 构建通过 |
+| Linux 构建依赖 | 初查缺 gcc/pkg-config/WebKitGTK 4.1；通过本机 WSL root 安装开发依赖中，未更改 SSH/Tailscale | 可从 Windows 交叉编译纯 Go；安装依赖不代表 Linux GUI 构建通过 |
 | 组网 | Windows Tailscale 可执行文件存在 | 未提供隔离 Headscale/DERP、公网 TLS 或不同网络测试机；不执行 logout/up |
 | Codex | 命令可发现；版本、stdio 能力由 P03 测试记录 | 不读取或改写用户现有秘密配置；MCP 真调用需独立证据 |
 | GitHub | 用户指定 https://github.com/HIHU-COCO/HOPNODE；初查远端无 refs | 推送、CI、分支保护与 Release 以实际结果记录 |

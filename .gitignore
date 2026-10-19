@@ -20,3 +20,6 @@ coverage/
 playwright-report/
 test-results/
 !docs/implementation/test-results/
+
+__pycache__/
+*.py[cod]
