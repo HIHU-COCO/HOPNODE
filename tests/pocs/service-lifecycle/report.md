@@ -60,6 +60,27 @@ ok  github.com/HIHU-COCO/HOPNODE/tests/pocs/service-lifecycle  6.101s
 
 命名管道使用随机本任务端点；两次实际 `status --json` 返回的 PID/实例相同，PID 与 native process handle 的 GetProcessId 一致，区别于测试进程自身。只解析允许的协议/PID/实例/OS 字段，不打印含身份的原始 JSON。测试退出后恢复原环境变量；Core binary 留在 ignored artifacts。此结果证明普通当前用户下的一次真实 Job/Named Pipe/停止清理场景，不涉及 SCM 安装、SCM 启停、系统服务身份、注销或重启。
 
+## Windows SCM 管理员 CI 测试准备（未实际开门）
+
+新增 `scm_integration_windows_test.go` 和 [SCM-CI.md](SCM-CI.md)，只在本目录施工。独立环境门控 `HOPNODE_POC_RUN_SCM=1` 加两份现存绝对 fixture 路径才启用；默认与路径缺失明确 Skip。开门后权限不够必须 Fail，不提权/UAC、不创建本机普通用户服务。
+
+测试设计：一次性 runner 上创建唯一随机 manual/demand、OwnProcess、LocalSystem 服务，复用既有宿主与 desktop-service；两轮真实 Start/Running/Stop/Stopped，核对 SCM host PID、直接 Core parent PID、两份镜像、LocalSystem token 及持有原生句柄退出。当前用户访问服务身份专属管道须被实际拒绝，不放宽 ACL；清理从 CreateService 成功即登记，仅停止/删除自建服务，失败时仅对已验证精确镜像句柄后备终止，再检查进程退出及 Delete/Close 后服务不存在。manager 的 LIFO 生命周期保留至服务清理完成。
+
+| 本次实际检查 | 结果 |
+| --- | --- |
+| Windows `gofmt -w scm_integration_windows_test.go` | PASS |
+| `HOPNODE_POC_RUN_SCM=0`、Core env 为空；`go test -mod=readonly -timeout 30s -count=1 -v ./...` | PASS，6.199s；SCM Native 与需显式 Core 的 Job 测试明确 Skip，未创建本机服务 |
+| `TestSCMSettingsGateAndPaths` | PASS：默认/关闭/非法 gate、缺失/相对/不存在路径、同文件、目录和有效配置，9 子项 |
+| `TestSCMCallerPermissionIsFailure` | PASS：普通用户错误、不同身份管理员允许、LocalSystem 调用者错误，3 子项；纯决策函数不调用 SCM |
+| `TestSCMStoppedRequiresSuccessfulExit` | PASS：Stopped 仅在 PID/Win32ExitCode/ServiceSpecificExitCode 均为 0 时成功；5 子项覆盖非零错误码和非 Stopped 状态，失败仍不跳过清理/删除 |
+| 补充退出码断言后 `go test -mod=readonly -timeout 30s -count=1 -run '^TestSCM' -v ./...`，gate=0 | PASS，7.504s；含上述 17 个新子项和原 handler 测试；Native SCM 仍明确 Skip |
+| `go mod verify` / `go vet ./...` | PASS：all modules verified；vet 退出 0 |
+| `go build -mod=readonly -trimpath -o artifacts/hopnode-service-poc.exe .` | PASS，退出 0 |
+| `go test -c -mod=readonly -o artifacts/service-lifecycle.test.exe .` | PASS，退出 0，含 Windows SCM 原生 API 测试代码 |
+| `TestSCMNativeLifecycle` 管理员实际启用 | NOT_RUN：当前本机未提权；准备交由集成负责人配置一次性 CI |
+
+CI 精确运行命令为本 module 下 `go test -mod=readonly -timeout 5m -count=1 -run '^TestSCMNativeLifecycle$' -v ./...`，build/env/绝对路径前检及恢复步骤见 SCM-CI.md。本次只记录实际编译/单元/Skip；尚无真实 SCM PASS。未来 Windows Server 2022 CI 不代替 Windows 10/11 真机矩阵。SCM Running 和管道 ACL 拒绝负例不冒充 LocalSystem 正向 API 或业务健康；产品调用者授权、注销、系统重启、崩溃与升级恢复均未覆盖，P04/正式 A 项保持未完成。
+
 ## 实际 systemd 生命周期证据
 
 脚本第一次和补充元数据/最终清理检查后复测均 PASS。每次创建新随机 unit，使用本次独占 RuntimeDirectory 0700 和 Core UDS 0600。`verify-systemd.py` 调用 `/usr/bin/env -u DISPLAY <core> status|doctor --json`，核对服务 MainPID 和实例一致、状态协议/OS 正确、身份字段非空，但仅保存 REDACTED。

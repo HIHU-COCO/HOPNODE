@@ -23,6 +23,8 @@ SCM 状态按 StartPending → Running → StopPending 转换。Stop/Shutdown �
 
 **Windows 服务创建/启停、服务账号 ACL、注销/重启恢复仍 NOT_RUN**。纯状态机 fake child 和上述普通用户 Job 测试均不计作 Windows SCM 真机验收；也不推断任意宿主崩溃、启动中断的行为。
 
+新增默认 Skip 的 `TestSCMNativeLifecycle`，供显式授权的一次性管理员 GitHub `windows-2022` runner 创建随机 manual/LocalSystem 服务，验证两轮真实启停、宿主/直接 Core 原生句柄与身份、保持原管道 ACL 的跨身份拒绝、Delete 后服务不存在及失败清理。本机只编译和默认 Skip，尚未实际执行 SCM。精确 build/env/test 命令及限制见 [SCM-CI.md](SCM-CI.md)；该 Server 2022 CI 不等同 Windows 10/11 验收，Running/管道拒绝不证明正向 API 健康。
+
 本目录下可执行：
 
 ```powershell
