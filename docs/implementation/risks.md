@@ -2,7 +2,7 @@
 
 | 编号 | 影响任务 / 验收 | 现状 | 解除条件 |
 | --- | --- | --- | --- |
-| ENV-01 | T03/P01、A02–A05/A14/A25 | BLOCKED：没有第二台授权设备和不同网络环境 | 提供测试机与连接说明，通过受保护途径配置凭据 |
+| ENV-01 | T03/P01、A02–A05/A14/A25 | 已授权LAN Ubuntu22.04 Desktop，真实密码SSH/PTY/10MiB SFTP通过；BLOCKED：缺Windows受控、Ubuntu24.04及不同网络/隔离组网环境 | 继续使用已授权Ubuntu推进独立测试；补齐其他目标和隔离Headscale/DERP，凭据不入库 |
 | ENV-02 | P01、A03/A04 | BLOCKED：没有隔离 Headscale/DERP 的域名、TLS 和部署入口 | 管理方提供可访问的测试部署；不得借用用户现网做破坏测试 |
 | ENV-03 | P04、A15–A19/A22/A23 | BLOCKED：缺 Ubuntu 24.04、全新 Desktop/Server；Linux构建依赖已补齐，WSL deb安装/启动及systemd局部测试通过；Windows SCM缺管理员环境 | 配齐测试 VM/机器及安装权限；WSL 结果单独列出 |
 | ENV-04 | T02、L04/L07 | PR #1与真实CI已有PASS记录，最新提交继续检查；分支保护未设置，27项验收未通过 | 保持当前提交CI通过；正式发布前完成所需保护/审查与27项验收 |
