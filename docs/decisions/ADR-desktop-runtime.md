@@ -36,3 +36,5 @@ Linux 工程预览使用 `tauri.linux.conf.json` 将打包产品名设为 ASCII 
 - P04 当前不能标 DONE；证据见 `docs/implementation/test-results/pocs/desktop-runtime.md`。
 
 集成验证方案：在现有双平台 POC 检查和 Go CI 中执行纯 Python 的 user-unit 异常清理回归；在已有 GTK/Gio 依赖的 Ubuntu Rust CI 中执行真实 Gio `/usr/bin/sleep` 生命周期夹具。前者无需 systemd，后者只创建临时 desktop 文件和自有 sleep 进程，均不安装包或服务；它们不能替代上述真机 GUI 证据。
+
+Windows SCM 的下一项验证限定在 GitHub Windows Server 2022 一次性管理员 runner：显式门控创建唯一随机、手动启动的 LocalSystem 测试服务，核对宿主/Core 镜像及原生进程句柄，两轮启停、服务身份管道拒绝其他身份，最后仅删除自建服务并确认进程退出/服务不存在。普通本机默认跳过，不自行提权；CI 显式开启后权限失败必须失败。此项尚待真实 CI 结果，不能提前声称本机 Windows 10/11 服务、正向跨身份 API 或注销/重启通过。
