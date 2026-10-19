@@ -60,6 +60,42 @@ jobs:
             go test -timeout 30s -count=1 -run '^TestOwnedChildNativeLifecycle$' -v ./...
             if ($LASTEXITCODE -ne 0) { throw 'Native POC process ownership test failed' }
           } finally { Pop-Location }
+      - name: Disposable Windows SCM lifecycle
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scmPocBuildDir = Join-Path $env:RUNNER_TEMP ('hopnode-p04-scm-' + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $scmPocBuildDir | Out-Null
+          $scmPocCore = Join-Path $scmPocBuildDir 'hopnodectl-poc.exe'
+          $scmPocHost = Join-Path $scmPocBuildDir 'hopnode-service-poc.exe'
+          go -C tests/pocs/desktop-service build -mod=readonly -trimpath -o $scmPocCore .
+          if ($LASTEXITCODE -ne 0) { throw 'Core POC build failed' }
+          go -C tests/pocs/service-lifecycle build -mod=readonly -trimpath -o $scmPocHost .
+          if ($LASTEXITCODE -ne 0) { throw 'SCM host build failed' }
+          foreach ($scmPocBinary in @($scmPocCore, $scmPocHost)) {
+            if (-not [IO.Path]::IsPathFullyQualified($scmPocBinary) -or
+                -not (Test-Path -LiteralPath $scmPocBinary -PathType Leaf)) {
+              throw 'SCM CI requires both built absolute executable paths'
+            }
+          }
+          $previousScmGate = $env:HOPNODE_POC_RUN_SCM
+          $previousScmHost = $env:HOPNODE_POC_SCM_HOST_EXE
+          $previousScmCore = $env:HOPNODE_POC_CORE_EXE
+          try {
+            $env:HOPNODE_POC_RUN_SCM = '1'
+            $env:HOPNODE_POC_SCM_HOST_EXE = $scmPocHost
+            $env:HOPNODE_POC_CORE_EXE = $scmPocCore
+            Push-Location tests/pocs/service-lifecycle
+            try {
+              go test -mod=readonly -timeout 5m -count=1 -run '^TestSCMNativeLifecycle$' -v ./...
+              if ($LASTEXITCODE -ne 0) { throw 'SCM lifecycle or owned cleanup failed' }
+            } finally { Pop-Location }
+          } finally {
+            $env:HOPNODE_POC_RUN_SCM = $previousScmGate
+            $env:HOPNODE_POC_SCM_HOST_EXE = $previousScmHost
+            $env:HOPNODE_POC_CORE_EXE = $previousScmCore
+          }
       - run: python scripts/verify-ledger.py
       - run: python -m unittest discover -s tests/pocs/network -p "test_*.py" -v
       - run: python tests/pocs/desktop-service/test-user-unit.py
