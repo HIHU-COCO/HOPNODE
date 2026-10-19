@@ -1,6 +1,6 @@
 # T01 / P04 桌面和 IPC 测试记录
 
-日期：2026-10-19（Asia/Shanghai）；作者：HIHU-COCO。源码首提交：`0ff6780`，后续修复以 Git 历史为准。环境：Windows 11 专业版 x64，10.0.26200（Build 26200）的当前用户会话；Go 1.27.2，Rust 1.99.1。Linux 记录由集成负责人补充。
+日期：2026-10-19（Asia/Shanghai）；作者：HIHU-COCO。源码首提交：`0ff6780`，后续修复以 Git 历史为准。Windows 环境：Windows 11 专业版 x64，10.0.26200（Build 26200）的当前用户会话；Go 1.27.2，Rust 1.99.1。下文另记集成负责人实际执行、经脱敏证据核对的 Ubuntu Desktop 22.04 X11 局部验证；其他 Linux 构建/WSLg 记录由集成负责人独立保留。
 
 | 检查 | 命令 | 实际结果 |
 | --- | --- | --- |
@@ -60,7 +60,7 @@
 
 安装与卸载证据保留于本机 `%TEMP%/hopnode-p04-install-d40b95a7eef44659872de2f213a3a9a3/`，含 `installed-gui-connected.png` 和隔离运行日志；包含真实运行身份的原始证据不提交 Git。本次安装/卸载冒烟仅覆盖当前 Windows 11 用户、debug 工程包和只读 IPC，不证明 Windows 10、Windows Service、原生托盘交互、升级恢复或 A01–A27 通过。
 
-## Ubuntu Desktop 独立暂存探针准备
+## Ubuntu Desktop 22.04 X11 独立暂存真机验证
 
 新增 `ubuntu-desktop-probe.md` 与三份 `linux-*.py`，只接受明确的当前用户 X11 元数据；所有程序/运行数据放唯一 0700 暂存目录，`.deb` 仅提取不安装。Go fixture 增加可选 0600/O_EXCL 审计，以 Linux `SO_PEERCRED` 验证真实客户端 PID/UID，不能用 CLI 请求或进程存活冒充 GUI 请求。可选 AT-SPI 只读/点击本次 GUI PID 的应用树；无法验证 UI 时明确 NOT_RUN/PARTIAL。清理先核验 owned 进程组确已不存在及独有 user 单元 MainPID/状态，再删除自己的暂存子目录；无法核验则保留。
 
@@ -72,9 +72,35 @@
 | 三份 Python `ast.parse` 语法检查 | PASS |
 | Linux owned 进程组清理真实冒烟 | PASS：用 runner 同一清理函数终止独立新 session 的 sleep 进程，内核及 `/proc` 后验均确认组不存在 |
 | 已授权 Ubuntu 22.04 Desktop 只读 probe | PASS：集成负责人实际执行回传；uid1000，五项必要会话字段存在、Xauthority 可读、GI 与四项工具存在，0600/O_EXCL 元数据创建成功；具体环境值未输出或提交 |
-| 远端 GUI→UDS、AT-SPI 刷新、退出后独立 Core、user transient unit | NOT_RUN：脚本准备完成，等待集成负责人通过已授权通道实际传输/执行；不由本地 WSL 结果推断 |
+| 远端普通进程轮 | PASS：集成负责人实际执行 runner，无 `--user-unit`，退出码 0；下表五项检查全部通过 |
+| 远端 transient user unit 轮 | PASS：集成负责人实际执行同一 runner 加 `--user-unit`，退出码 0；下表五项检查全部通过 |
+| 本次报告复核 | PASS：PowerShell 只读解析两轮 report/audit/UI JSON，断言五项 PASS、两条实际 GUI PID 请求、UI action 和清理后验；退出码 0；`git diff --check` 退出码 0 |
 
-本表只记录实际运行，测试进程身份未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
+真机环境：已授权 Ubuntu Desktop 22.04 x86_64，kernel 6.8.0-138-generic，GNOME 42.9 / gdm3 的活跃本地 X11 会话，普通 uid 1000；GTK 3.24.33、WebKitGTK 4.1 2.50.4、AppIndicator 0.5.90 已安装，用户 systemd 正常运行。执行未 sudo、未安装系统包。GUI `.deb` 只通过 `dpkg-deb -x` 提取到新建私有暂存目录后启动其中的实际二进制，没有执行系统安装或桌面菜单注册。
+
+两轮使用相同生成物，脱敏报告保存的 SHA-256：
+
+- GUI `.deb`：`1890590155d92b2d882b426fd4d8c012b6695ed658f6840e2b82f062a08108ea`。
+- 独立 Go Core/CLI fixture：`4aab3e28088ca8a01012496aa6e23811055ca4e17a3ee299a0701b9193daa378`。
+
+| 实际检查 / 证据 | 普通进程轮 | transient user unit 轮 |
+| --- | --- | --- |
+| `headless_cli_before_gui`：GUI 启动前，无 DISPLAY 的 CLI 返回实际独立 Core PID | PASS | PASS |
+| `uds_mode_0600`：本轮独有 UDS 的实际 mode | PASS：0600 | PASS：0600 |
+| `gui_to_real_uds`：Linux `SO_PEERCRED` 的 peer PID 等于本次实际 GUI PID、UID 一致，`GET /v0/status` 返回 200 | PASS | PASS |
+| `visible_ui_and_refresh`：AT-SPI 只读取本次 GUI 的「已连接」及实际 Core PID，调用「刷新状态」的真实 action，再核对新增的同 GUI 内核 PID 请求 | PASS | PASS |
+| `same_core_after_gui_exit_without_display`：终止本次 GUI 后，无 DISPLAY/XAUTHORITY/DBus 的 CLI 仍返回相同 Core PID/实例 | PASS | PASS |
+| GUI 审计请求计数 | 2 条：首次连接及刷新；全部审计身份经内核核验，UID 1000 | 2 条：首次连接及刷新；全部审计身份经内核核验，UID 1000 |
+| GUI stderr / GTK critical / scale-factor critical | 0 字节 / 0 / 0 | 0 字节 / 0 / 0 |
+| owned 进程组停止后验 | GUI、Core 两组均已不存在，`remaining_states=[]` | GUI 组已不存在，`remaining_states=[]` |
+| 独有 user 单元停止后验 | 不适用 | `MainPID=0`、`ActiveState=inactive`、`LoadState=not-found` |
+| 自建运行子目录清理 | extracted/bin/runtime/config/data/cache/state 七项均 REMOVED | 同左；所有 own 进程组/单元停止核验完成后才删除 |
+
+脱敏证据索引：集成工作树本机忽略目录 `.tools/authorized-ubuntu-22/` 中的 `gui-run.json`、`user-unit-run.json`、`gui-proof-summary.json`，以及 `desktop-run/`、`user-unit-run/` 各自的 `report.json`、`ipc-audit.jsonl`、`ui-accessibility.json`。两轮实际报告、审计和 UI 布尔结果已经核对；原始会话元数据、用户名、目标地址及凭据未写入本报告或提交 Git。私有运行证据保留，原有用户配置、数据和系统设置未清理。
+
+本次结果只证明上述 GNOME 22.04 X11 环境中的暂存二进制、真实 GUI→UDS、真实刷新及用户态独立 Core 生命周期。AT-SPI 结果不等于人工目视布局验收。两轮零 stderr 说明完整 GNOME 真机此次未复现先前 WSLg 的 GTK 警告，不覆盖或撤销既有 WSLg 失败/日志。未验证 `.deb` 系统安装/卸载、桌面菜单、Wayland、Ubuntu 24.04、托盘关闭/恢复、系统级 root systemd、注销/重启或 Windows SCM。
+
+本表只记录实际运行，实际运行用户名未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
 
 | 平台/验收 | 状态 | 原因 |
 | --- | --- | --- |
@@ -82,9 +108,10 @@
 | Windows Tauri WebView 渲染 / 刷新 / 真实 IPC / 故障恢复 | PASS | 原生 Tauri 进程内的真实 WebView，通过 CDP 点击刷新验证；没有 mock |
 | Windows 11 当前用户 NSIS 安装 / 内嵌前端 / 真实 IPC / 卸载 | PASS | 实际 debug 安装器在唯一 TEMP 目录安装并清理，前端不依赖 devserver；既有应用数据保持不变 |
 | Windows 原生窗口可见启动 / 最小尺寸 / 托盘关闭恢复 | NOT_RUN | 隐藏启动下原生窗口句柄不支持可靠交互验证；renderer 截图不替代该验收 |
-| Windows Service、注销、重启 | NOT_RUN | 尚未实现系统服务 POC，不能用用户态进程替代 |
-| Ubuntu Desktop 22.04/24.04 GUI、.deb、GNOME/Wayland/X11 | NOT_RUN | 没有已验收的完整 Ubuntu Desktop 两版本实机矩阵 |
+| Windows Service / SCM、注销、重启 | NOT_RUN | 本记录只有用户态进程证据；SCM 真实启停受当前权限阻塞，不能据此验收 |
+| Ubuntu Desktop 22.04 GNOME X11 暂存 GUI / UDS / 真实刷新 / 独立 Core | PASS | 两轮实际真机执行；普通进程与 transient user unit 各自五项检查通过 |
+| Ubuntu `.deb` 系统安装/卸载与桌面菜单、Wayland、24.04、托盘、系统级 systemd / 注销 / 重启 | NOT_RUN | `dpkg-deb -x` 暂存和用户态单元不替代这些验收；两版本完整矩阵仍缺失 |
 | Ubuntu Server 22.04/24.04 CLI/systemd | NOT_RUN | WSL/headless 构建不等价两版本真实 Server 与 systemd 生命周期 |
 | MCP / 不同网络 / DERP | NOT_RUN | 此 POC 没有这些能力，不属于本地 IPC 检查 |
 
-任务状态建议：T01 的桌面工程子项可以提交集成审查；P04 仍 IN_PROGRESS / 部分 BLOCKED，不能标 DONE 或认定 A15–A18/A24 已通过。下一个依赖是补齐真实平台和系统服务测试，再进入 P05 联合评审。
+任务状态建议：T01 的桌面工程子项可以提交集成审查；P04 保持 BLOCKED，不能标 DONE 或认定 A15–A18/A24 已通过。下一个依赖是补齐真实平台、安装和系统服务测试，再进入 P05 联合评审。

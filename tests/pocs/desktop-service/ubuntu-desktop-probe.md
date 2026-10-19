@@ -55,6 +55,16 @@ python3 linux-desktop-stage.py \
 
 输出只有检查状态、私有证据目录和清理结果；没有完整会话环境、用户名、UI 文本、地址或凭据。成功会留下 `report.json`、可选 `ui-accessibility.json`、`ipc-audit.jsonl` 和本次私有日志。目录位置是证据索引，不代表 GUI 已通过全部验收。
 
+## 2026-10-19 真机执行记录
+
+集成负责人已在 Ubuntu Desktop 22.04 x86_64 / kernel 6.8.0-138-generic / GNOME 42.9 / X11 的普通 uid 1000 会话执行上述两个命令，均退出 0、总体 PASS。GTK 3.24.33、WebKitGTK 4.1 2.50.4、AppIndicator 0.5.90 为机器原有依赖，本次没有安装系统包或使用 sudo。
+
+每轮 `headless_cli_before_gui`、`uds_mode_0600`、`gui_to_real_uds`、`visible_ui_and_refresh`、`same_core_after_gui_exit_without_display` 均 PASS。AT-SPI 实际读取本次 GUI 的已连接及 Core PID，再点击刷新；各有恰好 2 条 GUI 内核 PID 的 `GET /v0/status=200` 请求，全部审计身份核验通过。两轮 GUI stderr 均为 0 字节，此次完整 GNOME 环境未复现此前 WSLg GTK 警告，既有 WSLg 失败记录仍然有效。
+
+普通轮 GUI/Core 两个 owned 进程组均已不存在。user-unit 轮 GUI 组已不存在，独有单元停止后 `MainPID=0`、`ActiveState=inactive`、`LoadState=not-found`。两轮 extracted/bin/runtime/config/data/cache/state 七个自建运行子目录均已清理，保留私有证据。
+
+复核使用集成工作树忽略目录 `.tools/authorized-ubuntu-22/` 下两轮报告、审计、UI 布尔结果和 `gui-proof-summary.json`，未读取或提交私有会话环境/目标元数据。生成物哈希和逐项结果见 `docs/implementation/test-results/pocs/desktop-runtime.md`。这里的 PASS 仅指暂存探针列明项目：`.deb` 是解包运行，未系统安装；Wayland、24.04、桌面菜单、托盘、root systemd、Windows SCM 和正式验收仍未覆盖，P04 保持 BLOCKED。
+
 ## 清理与限制
 
 脚本仅终止自己通过新 session/process-group 启动的 GUI/Core；发信号前从 `/proc` 确认该组成员 UID/session，TERM/KILL 后必须通过内核组存在性和 `/proc` 成员后验共同确认组已不存在，不能仅凭 leader 退出。user 模式仅停止自己生成 UUID 的 transient 单元，随后核对 MainPID=0 且 inactive/failed，或单元已不存在，并保存脱敏状态。
