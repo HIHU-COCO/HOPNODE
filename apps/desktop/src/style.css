@@ -1,0 +1,10 @@
+/* Purpose: shared Windows/Ubuntu POC layout. Creator: HIHU-COCO. Created: 2026-10-19. */
+:root { font-family: 'Segoe UI', system-ui, sans-serif; color-scheme: dark; background: #0d131b; }
+body { margin: 0; }
+.shell { min-height: 100vh; background: radial-gradient(ellipse at 85% 0, #163c3c 0, #101924 35%, #0d131b 75%); }
+.header { background: #101923b3; border-bottom: 1px solid #263443; display: flex; align-items: center; padding: 0 38px; }
+.header h3 { margin: 0; }
+.brand-mark { display: grid; place-items: center; font-weight: 800; width: 34px; height: 34px; border: 1px solid #55d6bb; border-radius: 10px; color: #55d6bb; }
+.content { width: min(960px, calc(100% - 64px)); margin: 42px auto; }
+.notice { margin-top: 22px; }
+@media (max-width: 640px) { .header { padding: 0 16px; } .content { width: calc(100% - 32px); margin: 24px auto; } }
