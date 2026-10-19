@@ -10,8 +10,24 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [{ "title": "跃点 HopNode", "width": 1120, "height": 760, "minWidth": 640, "minHeight": 480 }],
-    "security": { "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:" }
+    "windows": [
+      {
+        "title": "跃点 HopNode",
+        "width": 1120,
+        "height": 760,
+        "minWidth": 640,
+        "minHeight": 480
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:"
+    }
   },
-  "bundle": { "active": true, "targets": ["deb", "nsis"], "shortDescription": "HopNode desktop IPC engineering preview", "category": "DeveloperTool", "icon": ["icons/icon.png"] }
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "nsis"],
+    "shortDescription": "HopNode desktop IPC engineering preview",
+    "category": "DeveloperTool",
+    "icon": ["icons/icon.png"]
+  }
 }
