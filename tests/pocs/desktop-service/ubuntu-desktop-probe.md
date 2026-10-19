@@ -57,6 +57,8 @@ python3 linux-desktop-stage.py \
 
 ## 清理与限制
 
-脚本仅终止自己通过新 session/process-group 启动的 GUI/Core；user 模式仅停止自己生成 UUID 的 transient 单元。每个将递归清理的目录在删除前必须解析为本次私有 stage 的直接子目录，且不能是 symlink。只删除自己创建的 extracted/bin/runtime/config/data/cache/state，保留私有证据，不删除上传目录、原有用户配置/数据或任何系统文件。清理失败会将总状态设为 FAIL 并保留报告。
+脚本仅终止自己通过新 session/process-group 启动的 GUI/Core；发信号前从 `/proc` 确认该组成员 UID/session，TERM/KILL 后必须通过内核组存在性和 `/proc` 成员后验共同确认组已不存在，不能仅凭 leader 退出。user 模式仅停止自己生成 UUID 的 transient 单元，随后核对 MainPID=0 且 inactive/failed，或单元已不存在，并保存脱敏状态。
+
+只有所有 owned 进程组/单元都确认停止后才清理文件，否则保留全部 stage 子目录并标 FAIL。每个将递归清理的目录在删除前必须解析为本次私有 stage 的直接子目录，且不能是 symlink。只删除自己创建的 extracted/bin/runtime/config/data/cache/state，保留私有证据，不删除上传目录、原有用户配置/数据或任何系统文件。`owned-processes.json` 在启动时即记录本次 PID/group/独有单元名，供意外中断后负责人只核查自己的测试资源。SIGTERM/SIGINT 会进入清理；SIGKILL 不能保证自动清理，负责人须按 manifest 验证资源归属后处理，不应直接递归删除仍可能使用的 stage。
 
 `PASS` 仅表示本次全部已列检查通过；`PARTIAL` 表示真实 IPC/独立 Core 等通过但 UI accessibility 未验证；`FAIL` 保留真实错误。此测试不安装 `.deb`，不能代替 Ubuntu 安装/卸载、桌面菜单、Wayland、24.04、系统级 systemd 或 A01–A27 完整验收。

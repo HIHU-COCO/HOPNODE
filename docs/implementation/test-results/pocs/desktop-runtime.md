@@ -60,6 +60,20 @@
 
 安装与卸载证据保留于本机 `%TEMP%/hopnode-p04-install-d40b95a7eef44659872de2f213a3a9a3/`，含 `installed-gui-connected.png` 和隔离运行日志；包含真实运行身份的原始证据不提交 Git。本次安装/卸载冒烟仅覆盖当前 Windows 11 用户、debug 工程包和只读 IPC，不证明 Windows 10、Windows Service、原生托盘交互、升级恢复或 A01–A27 通过。
 
+## Ubuntu Desktop 独立暂存探针准备
+
+新增 `ubuntu-desktop-probe.md` 与三份 `linux-*.py`，只接受明确的当前用户 X11 元数据；所有程序/运行数据放唯一 0700 暂存目录，`.deb` 仅提取不安装。Go fixture 增加可选 0600/O_EXCL 审计，以 Linux `SO_PEERCRED` 验证真实客户端 PID/UID，不能用 CLI 请求或进程存活冒充 GUI 请求。可选 AT-SPI 只读/点击本次 GUI PID 的应用树；无法验证 UI 时明确 NOT_RUN/PARTIAL。清理先核验 owned 进程组确已不存在及独有 user 单元 MainPID/状态，再删除自己的暂存子目录；无法核验则保留。
+
+| 验证 | 结果 |
+| --- | --- |
+| Windows Go 原有回归 `go test -v ./...` / `go vet ./...` | PASS：3 测试，vet 退出 0 |
+| WSL Ubuntu 22.04 `go test -race -v ./...` | PASS：5 测试，包括真实 UDS 内核 PID/UID 审计、拒绝覆盖已有审计文件 |
+| WSL `go vet ./...` | PASS：退出 0 |
+| 三份 Python `ast.parse` 语法检查 | PASS |
+| Linux owned 进程组清理真实冒烟 | PASS：用 runner 同一清理函数终止独立新 session 的 sleep 进程，内核及 `/proc` 后验均确认组不存在 |
+| 已授权 Ubuntu 22.04 Desktop 只读 probe | PASS：集成负责人实际执行回传；uid1000，五项必要会话字段存在、Xauthority 可读、GI 与四项工具存在，0600/O_EXCL 元数据创建成功；具体环境值未输出或提交 |
+| 远端 GUI→UDS、AT-SPI 刷新、退出后独立 Core、user transient unit | NOT_RUN：脚本准备完成，等待集成负责人通过已授权通道实际传输/执行；不由本地 WSL 结果推断 |
+
 本表只记录实际运行，测试进程身份未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
 
 | 平台/验收 | 状态 | 原因 |
