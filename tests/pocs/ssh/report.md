@@ -90,14 +90,15 @@ prepare 实际下载固定版本的两个包并成功校验 chroot 配置，退�
 | Ubuntu Desktop GUI | NOT_RUN | 本 POC 无桌面安装或 GUI 测试 |
 | Ubuntu Server CLI 安装 | NOT_RUN | 本 POC 未实施正式包安装 |
 | ProxyJump / ssh-agent 两平台认证 | NOT_RUN | 尚无已授权跳板与对应 agent 测试会话，POC 明确不支持 |
-| Windows / Ubuntu 后台断线任务 | NOT_RUN | 需真实任务与断线、状态再查询及进程归属证据 |
+| Linux 短 nohup 任务正常关闭 SSH 连接 | PASS（局部） | LAN 授权目标短任务在正常关闭连接后完成；约三秒后新连接查证并清理，非持久化 task-runner |
+| Windows / Ubuntu 异常网络断线、注销与重启任务 | NOT_RUN | 仍需异常链路、进程归属和可靠状态再查询证据 |
 | MCP / 跨网络 / DERP 真调用 | NOT_RUN | 不属于本回环测试；无相应链路证据 |
 
 ## 风险与下一依赖
 
 取消关闭 SSH session 不构成远端进程终止保证；未应答 channel-open 的取消会关闭连接。SFTP 超时或断线可能留下探针临时目录；失败不会输出传输 PASS。自动测试不提供续传、后台 task ID、升级、托管撤销或系统服务结论。
 
-后续需补 Windows / Ubuntu 两种系统 sshd 的密码与私钥认证、命令、PTY、路径列举、10 MiB 往返和 Host Key 错误证据，调查两平台后台断线行为，再交由 P05 联合评审。生产 R01 / R06 还需完善凭据库、用户目录和 SSH 配置兼容矩阵。
+后续需补 Windows 系统 sshd 受控端、独立 Ubuntu 私钥认证与 24.04 受控端、两平台 SSH config 的真实兼容，以及异常网络断线/注销任务行为，再交由 P05 联合评审。生产 R01 / R06 还需完善凭据库、用户目录和 SSH 配置兼容矩阵。
 
 本报告不修改状态总表，也不把 P02 或 A20 / A24 标为 DONE / PASS。Git commit 由完成该子任务的提交及主线集成记录追溯；未创建或推送 PR。
 
@@ -164,6 +165,8 @@ PID 1 为 systemd、存在 systemctl 只说明具备查询条件；服务安装/
 
 新增 `TestPinnedEd25519WithMultipleServerHostKeys`：服务端同时提供 ECDSA 与 Ed25519，分别以普通、哈希主机名仅 pin Ed25519，均成功协商该已钉住键且 known-hosts 不变；改 pin 另一把 Ed25519 后，即使提供实际服务器指纹也仍拒绝为 SSH_HOST_KEY_CHANGED，并保留原记录。`TestPinnedCertificateAuthorityAndRevocation` 还验证 Ed25519 CA 签发 ECDSA 主机证书可用，撤销该 CA 后拒绝且不改 known-hosts。Windows `go test -v ./...` 10 项顶层测试 PASS（`ok hopnode/pocs/ssh 2.064s`）；`go vet ./...` PASS；WSL `go test -race ./...` PASS（`ok hopnode/pocs/ssh 4.979s`）。该回归全部使用单机回环合成身份，不含真实目标元数据。
 
+主代理还用主线 `03dee1a` 新编译的探针对真实多算法 LAN 服务器复验：从已核验文件中只取既有 Ed25519 记录到新专用 known-hosts，没有追加信任。命令返回固定标记 `HOPNODE_PINNED_ED25519_OK`、exit 0、stderr 为空且未超时。子任务已只读核对脱敏证据 `.tools/authorized-ubuntu-22/pinned-algorithm.json`；该结果补证单 Ed25519 pin 的真实协商修复，未提交目标地址或主机公钥。
+
 ### 主代理执行的 LAN 目标脱敏结果
 
 子任务只读取主代理提供的本地脱敏证据 `.tools/authorized-ubuntu-22/semantics.json`、`sftp.json`，未读取凭据或连接目标；文件未加入 Git。结果如下：
@@ -176,28 +179,32 @@ PID 1 为 systemd、存在 systemctl 只说明具备查询条件；服务安装/
 | PTY | PASS，返回合成标记和 `24 80`，exit 0 |
 | SFTP | PASS，10,485,760 字节中文/空格文件原始字节与目录列举校验通过；唯一父目录 mode 700 |
 | 清理 | PASS，探针子目录已清理，唯一空父目录 `rmdir` 成功，exit 0，无本轮数据残留 |
-| GUI / 系统服务 / 后台断线 | NOT_RUN，本轮数据不能替代这些验收 |
+| 正常结束 SSH 连接后的短任务 | PASS（局部），见后附 nohup 结果；非异常网络断线 |
+| GUI / 系统服务启停 / 异常网络断线 | NOT_RUN，本轮数据不能替代这些验收 |
 | 跨网络 / DERP | NOT_RUN，LAN 测试不构成这些链路证据 |
 
-### 只读清单脚本与待填模板
+### 只读清单脚本与实际局部结果
 
 新增 [`remote-inventory.sh`](remote-inventory.sh)，由主代理在安全认证通道将脚本内容交给 Bash 执行，无需上传或落盘。脚本只输出固定键及受限值，涵盖 OS / 架构、普通用户权限分类、桌面会话入口数量与相关进程是否存在、SSH 环境的显示变量是否设置、PID 1 / systemd 查询、指定包版本和指定服务状态。它不输出用户名、主机名、私有 IP、完整环境值或配置内容，不调用 sudo、不写文件、不修改服务。
 
 系统命令存在性只搜索固定系统 PATH，不能据 `binary.*.present=no` 认定用户自定义路径没有安装。SSH 的桌面变量与 GUI 进程存在性也不构成实际可交互桌面验收。`access_writable` 只是当前账号访问权限检查，不进行了写入。
 
-本机 `bash -n` PASS；WSL 本地烟测成功（129 个字段），人工注入的 DISPLAY 地址及桌面私有标记未出现在输出。远端 inventory 待主代理执行并给出脱敏结果，以下模板仍为 NOT_RUN：
+本机 `bash -n` PASS；WSL 本地烟测成功（129 个字段），人工注入的 DISPLAY 地址及桌面私有标记未出现在输出。主代理随后在授权 LAN 目标实际运行脚本，脱敏证据为 `.tools/authorized-ubuntu-22/inventory-detailed.json`：127 个固定键字段、本地及远端退出码均为 0、stderr 为空、未超时。子任务已只读核对该文件及补充证据 `inventory.json`，仅在此记录与验收有关的平台结果，不提交原始数据：
 
-| 维度 | 待记录的脱敏结果 | 当前状态 |
+| 维度 | 实际脱敏结果 | 当前状态 |
 | --- | --- | --- |
-| 平台 | Ubuntu 版本、架构；不记录主机名/地址 | NOT_RUN |
-| 普通用户 | 是否 root、管理组成员分类、临时目录访问权限；不记录真实账号 | NOT_RUN |
-| 桌面 | 会话入口、桌面进程、显示变量分类；交互权限另验 | NOT_RUN |
-| systemd | PID 1 / 查询状态；服务安装与启停权限不推断 | NOT_RUN |
-| 依赖 / 包 | 固定清单已安装及版本 / 缺失；用户路径安装另查 | NOT_RUN |
-| 服务 | 只读 LoadState / ActiveState / SubState | NOT_RUN |
+| 平台 | Ubuntu 22.04、x86_64、64 位；报告不记录主机名/地址/真实账号 | PASS（只读识别） |
+| 普通用户 | 当前非 root、管理组成员；/tmp、/var/tmp、home 的访问权限检查可写，未进行清单写入探测 | PASS（只读识别） |
+| 桌面 | 已装 Ubuntu Desktop / GNOME；X11 / Wayland 入口各 2 个，GNOME Shell 与 Xorg 进程存在；补充查询见活动 X11 用户会话。当前 SSH 会话为 tty，DISPLAY / WAYLAND_DISPLAY 未设置 | PASS（条件识别）；实际 GUI 仍 NOT_RUN |
+| systemd | PID 1 为 systemd，系统状态 running，补充查询的用户管理器 running；未安装/启停服务 | PASS（只读查询） |
+| 运行依赖 | OpenSSH 8.9p1 包、GTK 3.24.33、WebKitGTK 4.1 runtime 2.50.4、Ayatana AppIndicator runtime 已装 | PASS（已装版本识别）；安装包运行仍 NOT_RUN |
+| 构建条件 | build-essential / pkg-config、系统 PATH 中 gcc / make / Node / pnpm 存在；Rust / Cargo / Go / Codex 未在所查系统 PATH 发现；GTK / WebKitGTK / AppIndicator 开发包、librsvg 开发包与 patchelf 缺失 | PASS（缺口识别）；用户自定义路径另查，构建未执行 |
+| 指定服务 | ssh、tailscaled、display-manager 为 loaded / active / running；HopNode Core / Agent 指定 unit 为 not-found / inactive / dead | PASS（只读查询）；没有修改现有 SSH / Tailscale |
 
-### 小于 10 秒的 Linux session 生命周期调查方案（未执行）
+`inventory.json` 还包含主代理另行执行的 `sudo -n` 检测布尔：该时点不可无交互提权。该命令不属于 `remote-inventory.sh`，清单脚本自身的 `privilege.sudo_execution=NOT_RUN` 保持准确。管理组成员不能据此推断已有服务安装或软件包安装权限；本轮未尝试修改这些状态。
 
-建议仅调查“正常结束 SSH 连接后，显式后台化的短任务是否完成”，由主代理执行。先创建并验证独立 mode 700 临时父目录；在该目录中用 `nohup sh -c 'sleep 2; printf "completed\n" > result' </dev/null > stdout 2> stderr &` 启动最长约两秒的本轮子任务，将 PID 仅写入该目录并返回合成启动标记。记录启动命令耗时，确保 SSH session / 连接已在任务结束前正常关闭；随后等待约三秒，用新 SSH 连接查询 `result` 是否为预期标记。任务不运行 sudo，不安装守护程序，不发送终止信号；只清理已知的本轮 result/stdout/stderr/pid 文件并 rmdir 空父目录，失败保留现场。
+### Linux 短任务正常结束 SSH 连接的局部调查
 
-该方法只研究显式 nohup、标准流重定向下的正常 session / 连接关闭，不能标为 TCP 非正常断线、链路丢包、注销、重启、systemd 托管或可靠持久化 task-runner。若启动命令直到任务完成才返回，也不能声称任务在断线后存活。整个调查约五秒，控制在十秒内；结果未知，目前 NOT_RUN。
+主代理已执行先前拟定的短任务方案，脱敏证据为 `.tools/authorized-ubuntu-22/task-lifecycle.json`，子任务仅只读核对。操作使用本轮独立 mode 700 临时目录；nohup 子任务 sleep 2 后写入合成完成标记，标准流全部重定向到同一临时目录。启动 SSH 命令在 218 ms 返回合成启动标记，退出码 0，连接正常结束；约三秒后新 SSH 连接读到完成标记，PID 查询没有进程状态值，确认短任务已结束。四个本轮文件与空唯一父目录均已清理，查询及清理退出码 0，stderr 为空。没有运行 sudo、安装守护程序或发送进程终止信号。
+
+结果为 PASS（局部）：该目标在本次显式 nohup / 标准流重定向条件下，短任务完成时间晚于正常 SSH 连接结束，并可由新连接读到完成标记。整个调查约三秒，小于十秒。它没有测试 TCP 非正常断线、链路丢包、注销、重启、systemd 托管、远端可靠取消或持久化 task-runner；这些项目保持 NOT_RUN。也没有产生产品 task ID、日志恢复或任务调度接口，不能将此局部调查标记为 F13 已完成。
