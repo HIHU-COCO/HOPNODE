@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"os/user"
 	"runtime"
 	"time"
 )
@@ -29,12 +30,16 @@ type Status struct {
 	StartedAt  string `json:"started_at"`
 }
 
-func newStatus() Status {
+func newStatus() (Status, error) {
 	var id [16]byte
 	if _, err := rand.Read(id[:]); err != nil {
-		panic(err)
+		return Status{}, err
 	}
-	return Status{"poc.v0", version, os.Getpid(), hex.EncodeToString(id[:]), runtime.GOOS, "user", time.Now().UTC().Format(time.RFC3339Nano)}
+	identity, err := user.Current()
+	if err != nil {
+		return Status{}, fmt.Errorf("resolve process identity: %w", err)
+	}
+	return Status{"poc.v0", version, os.Getpid(), hex.EncodeToString(id[:]), runtime.GOOS, identity.Username, time.Now().UTC().Format(time.RFC3339Nano)}, nil
 }
 
 func handler(status Status) http.Handler {
@@ -52,12 +57,16 @@ func handler(status Status) http.Handler {
 }
 
 func serve(ctx context.Context, path string) error {
+	status, err := newStatus()
+	if err != nil {
+		return err
+	}
 	listener, err := listen(path)
 	if err != nil {
 		return err
 	}
 	defer listener.Close()
-	server := &http.Server{Handler: handler(newStatus()), ReadHeaderTimeout: 3 * time.Second, WriteTimeout: 3 * time.Second, IdleTimeout: 3 * time.Second, MaxHeaderBytes: 4096}
+	server := &http.Server{Handler: handler(status), ReadHeaderTimeout: 3 * time.Second, WriteTimeout: 3 * time.Second, IdleTimeout: 3 * time.Second, MaxHeaderBytes: 4096}
 	go func() {
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -89,7 +98,14 @@ func query(ctx context.Context, path string) (Status, error) {
 		return Status{}, fmt.Errorf("Core returned HTTP %d", response.StatusCode)
 	}
 	var status Status
-	if err := json.NewDecoder(io.LimitReader(response.Body, 65537)).Decode(&status); err != nil {
+	body, err := io.ReadAll(io.LimitReader(response.Body, 65537))
+	if err != nil {
+		return Status{}, err
+	}
+	if len(body) > 65536 {
+		return Status{}, errors.New("Core response exceeded 64 KiB")
+	}
+	if err := json.Unmarshal(body, &status); err != nil {
 		return Status{}, err
 	}
 	if status.APIVersion != "poc.v0" || status.PID <= 0 || status.InstanceID == "" {

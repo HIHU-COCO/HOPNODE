@@ -132,4 +132,25 @@ mod tests {
         assert!(parse_response(b"HTTP/1.1 200 OK\r\n\r\n{\"api_version\":\"other\"}").is_err());
         assert!(parse_response(b"invalid").is_err());
     }
+
+    #[test]
+    #[ignore = "requires a separately running P04 Go controller and HOPNODE_POC_ENDPOINT"]
+    fn real_controller_roundtrip() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let status = runtime
+            .block_on(super::core_status())
+            .expect("real Go controller IPC failed");
+        assert_ne!(
+            status["pid"].as_u64().unwrap(),
+            u64::from(std::process::id())
+        );
+        assert!(!status["identity"].as_str().unwrap().is_empty());
+        println!(
+            "Real Go Core IPC PASS: api={}, version={}, distinct process=true",
+            status["api_version"], status["version"]
+        );
+    }
 }

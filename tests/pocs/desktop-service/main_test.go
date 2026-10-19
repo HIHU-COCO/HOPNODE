@@ -26,7 +26,10 @@ func TestRealTransportRoundtrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	status := newStatus()
+	status, err := newStatus()
+	if err != nil {
+		t.Fatal(err)
+	}
 	server := &http.Server{Handler: handler(status), ReadHeaderTimeout: time.Second}
 	t.Cleanup(func() { _ = server.Close() })
 	go func() { _ = server.Serve(listener) }()
@@ -49,7 +52,11 @@ func TestRealTransportRoundtrip(t *testing.T) {
 }
 
 func TestReadOnlyHTTP(t *testing.T) {
-	h := handler(newStatus())
+	status, err := newStatus()
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := handler(status)
 	for _, test := range []struct {
 		method, path string
 		code         int
