@@ -19,7 +19,9 @@
 
 SCM 状态按 StartPending → Running → StopPending 转换。Stop/Shutdown 终止自身 job，等待主子进程退出且 job 活跃进程数归零后才成功返回。启动失败、主子进程意外退出、停止失败/超时返回不同服务错误码；关闭 job 作为剩余自身后代的清理后备。SCM Running 只表示子进程已创建，未承诺 IPC readiness。
 
-当前 Windows 会话 `IsAdministrator=False`。只运行无原生进程操作的配置/SCM handler 单元测试、vet 和编译；**Windows 服务创建、启停、Job Object 原生行为、服务账号 ACL、注销/重启恢复均 NOT_RUN**。纯状态机测试中的 fake child 不计作 Windows Service 真机验收。正常 Stop 的 job 清理设计不能用来推断任意宿主崩溃、启动中断的行为。
+当前 Windows 会话 `IsAdministrator=False`。默认套件运行无原生进程操作的配置/SCM handler 单元测试，原生 Job 测试明确 Skip/NOT_RUN。额外设置 `HOPNODE_POC_CORE_EXE` 后，`TestOwnedChildNativeLifecycle` 启动本任务隔离构建的 Core，在随机 Named Pipe 上经实际 CLI 校验独立 PID/实例与 Job 成员关系，Stop 后检查主进程退出、整个 Job 活跃进程数为零、CLI 非零退出和句柄关闭。本次显式原生 Job 验证 PASS，无需管理员。
+
+**Windows 服务创建/启停、服务账号 ACL、注销/重启恢复仍 NOT_RUN**。纯状态机 fake child 和上述普通用户 Job 测试均不计作 Windows SCM 真机验收；也不推断任意宿主崩溃、启动中断的行为。
 
 本目录下可执行：
 
@@ -30,6 +32,23 @@ go vet ./...
 New-Item -ItemType Directory -Force artifacts | Out-Null
 go build -trimpath -o artifacts\hopnode-service-poc.exe .
 ```
+
+显式选择真实原生 Job 测试时，先在本目录的 ignored artifacts 中构建 desktop-service POC：
+
+```powershell
+$nativePocCore = Join-Path (Resolve-Path artifacts).Path 'hopnodectl-poc.exe'
+go -C ../desktop-service build -mod=readonly -trimpath -o $nativePocCore .
+if ($LASTEXITCODE -ne 0) { throw 'POC build failed' }
+$previousPocCore = $env:HOPNODE_POC_CORE_EXE
+try {
+    $env:HOPNODE_POC_CORE_EXE = $nativePocCore
+    go test -timeout 30s -count=1 -run '^TestOwnedChildNativeLifecycle$' -v ./...
+} finally {
+    $env:HOPNODE_POC_CORE_EXE = $previousPocCore
+}
+```
+
+测试只清理自身 Job，不安装 SCM、不提权；原始 CLI 身份响应不写日志。Job 可能包含 Windows `conhost.exe` 等辅助进程，因此停止前验证真实 Core PID 属于本 Job，停止后严格要求整个 Job 的 activeProcesses 为零，不假定启动时恰好只有一个进程。
 
 ## Linux transient systemd 实测
 
