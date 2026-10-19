@@ -55,6 +55,26 @@ python3 linux-desktop-stage.py \
 
 输出只有检查状态、私有证据目录和清理结果；没有完整会话环境、用户名、UI 文本、地址或凭据。成功会留下 `report.json`、可选 `ui-accessibility.json`、`ipc-audit.jsonl` 和本次私有日志。目录位置是证据索引，不代表 GUI 已通过全部验收。
 
+## 用户授权临时安装后的真实 desktop-entry 模式
+
+用户已明确授权临时安装、测试后卸载，且不安装新依赖。集成负责人另行核对无已有安装、包内容无冲突、没有维护脚本及依赖已满足，使用既有安全通道执行系统安装和最终卸载；本 runner 始终以普通桌面用户运行，不接触 sudo 密码，也不安装、卸载或修改系统包。即使探针失败，负责人仍需核对 owned 资源并完成该次安装的卸载。
+
+安装当前已验证的包后，在原有上传目录额外放置 `linux-desktop-entry.py`，可复用同一接口：
+
+```sh
+python3 linux-desktop-stage.py \
+  --deb /path/to/private-upload/gui.deb \
+  --core /path/to/private-upload/hopnodectl-poc \
+  --session-env /path/to/private-upload/session.json \
+  --installed-desktop /usr/share/applications/hopnode-desktop-poc.desktop
+```
+
+模式只接受该精确系统入口和 `/usr/bin/hopnode-desktop`，二者及父目录必须 root-owned、不可被组/其他用户写入，且无 symlink。它们的 SHA-256 必须与原 `.deb` 解包内容一致；拒绝 Terminal、DBusActivatable、Hidden、NoDisplay 或非预期 Exec。通过真实 `Gio.DesktopAppInfo` 的 `launch_uris_as_manager_with_fds` 启动安装入口，AppLaunchContext 清除继承环境后仅写入明确的 X11 会话及隔离 XDG/endpoint，PATH 限于 `/usr/bin:/bin`。这验证桌面入口启动机制，不自动等同 GNOME 菜单中人工点击。
+
+Gio 的 child-setup 仅对本次新进程执行 `setsid`，PID callback 在启动时记入私有 manifest；先核对新 session/group，再核对 `/proc/<pid>/exe` 确实为已安装二进制。之后复用真实 GUI 内核 PID 的 UDS 审计、AT-SPI 状态/刷新、GUI 退出后独立 Core 与精确清理。报告新增 `gui_launch_method`、`installed_payload_sha256`、`installed_desktop_exec_verified`，保留原五项功能检查；不把未执行的安装/卸载核对写成 runner 的 PASS。
+
+本地回归命令 `python3 test-desktop-entry.py` 只启动唯一私有 `.desktop` 的 sleep fixture，实际核验 Gio callback PID、新 session/group、精确环境、信号退出与进程组消失；不启动用户应用、不等同 GUI 验收。Ubuntu 22.04 WSL 实际运行 1 测试 PASS。初次回归在 exec 完成前读取 `/proc` 环境导致失败，增加等待实际 exec 环境后通过；未将该失败算作产品成功。
+
 ## 2026-10-19 真机执行记录
 
 集成负责人已在 Ubuntu Desktop 22.04 x86_64 / kernel 6.8.0-138-generic / GNOME 42.9 / X11 的普通 uid 1000 会话执行上述两个命令，均退出 0、总体 PASS。GTK 3.24.33、WebKitGTK 4.1 2.50.4、AppIndicator 0.5.90 为机器原有依赖，本次没有安装系统包或使用 sudo。
@@ -71,4 +91,4 @@ python3 linux-desktop-stage.py \
 
 只有所有 owned 进程组/单元都确认停止后才清理文件，否则保留全部 stage 子目录并标 FAIL。每个将递归清理的目录在删除前必须解析为本次私有 stage 的直接子目录，且不能是 symlink。只删除自己创建的 extracted/bin/runtime/config/data/cache/state，保留私有证据，不删除上传目录、原有用户配置/数据或任何系统文件。`owned-processes.json` 在启动时即记录本次 PID/group/独有单元名，供意外中断后负责人只核查自己的测试资源。SIGTERM/SIGINT 会进入清理；SIGKILL 不能保证自动清理，负责人须按 manifest 验证资源归属后处理，不应直接递归删除仍可能使用的 stage。
 
-`PASS` 仅表示本次全部已列检查通过；`PARTIAL` 表示真实 IPC/独立 Core 等通过但 UI accessibility 未验证；`FAIL` 保留真实错误。此测试不安装 `.deb`，不能代替 Ubuntu 安装/卸载、桌面菜单、Wayland、24.04、系统级 systemd 或 A01–A27 完整验收。
+`PASS` 仅表示本次全部已列检查通过；`PARTIAL` 表示真实 IPC/独立 Core 等通过但 UI accessibility 未验证；`FAIL` 保留真实错误。runner 自身不安装 `.deb`；默认解包模式与 installed desktop-entry 模式均不能代替负责人独立核对系统安装/卸载、GNOME 菜单点击、Wayland、24.04、系统级 systemd 或 A01–A27 完整验收。

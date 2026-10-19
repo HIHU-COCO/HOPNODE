@@ -100,6 +100,8 @@
 
 本次结果只证明上述 GNOME 22.04 X11 环境中的暂存二进制、真实 GUI→UDS、真实刷新及用户态独立 Core 生命周期。AT-SPI 结果不等于人工目视布局验收。两轮零 stderr 说明完整 GNOME 真机此次未复现先前 WSLg 的 GTK 警告，不覆盖或撤销既有 WSLg 失败/日志。未验证 `.deb` 系统安装/卸载、桌面菜单、Wayland、Ubuntu 24.04、托盘关闭/恢复、系统级 root systemd、注销/重启或 Windows SCM。
 
+新增可选 `--installed-desktop` 模式，用户授权下由集成负责人独立安装/卸载包，普通用户 runner 仅负责核验安装文件哈希并经真实 Gio desktop-entry 启动、隔离及复用五项检查。`python3 test-desktop-entry.py` 在本地 WSL Ubuntu 22.04 实际 PASS：1 个真实 Gio sleep fixture 生命周期测试，确认新 session/group、PID callback、精确环境与组回收；此测试没有 GUI 验收含义。安装模式远端运行及卸载结果待集成负责人执行后另记，不由前述暂存两轮推断。
+
 本表只记录实际运行，实际运行用户名未写入报告。随机隔离 Named Pipe 与临时构建产物未提交。
 
 | 平台/验收 | 状态 | 原因 |

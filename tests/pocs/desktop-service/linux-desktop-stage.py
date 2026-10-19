@@ -4,6 +4,7 @@ Purpose: real Ubuntu Desktop GUI/UDS/headless lifecycle probe. Creator: HIHU-COC
 """
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,7 @@ import shutil
 import signal
 import stat
 import subprocess
+import sys
 import tempfile
 import time
 import uuid
@@ -22,8 +24,10 @@ parser.add_argument("--deb", required=True, type=Path)
 parser.add_argument("--core", required=True, type=Path)
 parser.add_argument("--session-env", required=True, type=Path)
 parser.add_argument("--user-unit", action="store_true", help="Use an isolated transient systemd --user unit for Core")
+parser.add_argument("--installed-desktop", type=Path, help="Use the verified installed HopNode .desktop through Gio; never installs/removes packages")
 args = parser.parse_args()
 os.umask(0o077)
+sys.dont_write_bytecode = True
 uid = os.getuid()
 if uid == 0:
     raise SystemExit("Run as the authorized desktop user, without sudo")
@@ -87,6 +91,29 @@ def launch(command, env, prefix):
     with open(stage / "owned-processes.json", "w", encoding="utf-8") as output:
         json.dump(manifest, output)
     return process
+
+
+def launch_installed_gui(entry_module):
+    output = open(stage / "gui.stdout", "xb")
+    error = open(stage / "gui.stderr", "xb")
+    streams.extend((output, error))
+    def remember_child(process):
+        processes.append(process)
+        manifest["process_groups"].append({"leader_pid": process.pid, "purpose": "installed-gui-desktop-entry"})
+        with open(stage / "owned-processes.json", "w", encoding="utf-8") as output:
+            json.dump(manifest, output)
+
+    process = entry_module.launch_desktop_entry(args.installed_desktop, environment, output, error, remember_child)
+    if os.getpgid(process.pid) != process.pid or os.getsid(process.pid) != process.pid:
+        raise RuntimeError("Gio desktop child did not enter its own session/process group")
+    deadline = time.monotonic() + 5
+    actual_executable = Path(f"/proc/{process.pid}/exe")
+    while time.monotonic() < deadline and process.poll() is None:
+        if actual_executable.resolve() == Path("/usr/bin/hopnode-desktop"):
+            report["installed_desktop_exec_verified"] = True
+            return process
+        time.sleep(0.05)
+    raise RuntimeError("Gio child did not execute the actual installed HopNode binary")
 
 
 def query():
@@ -194,6 +221,13 @@ try:
         raise RuntimeError("Expected exactly one extracted HopNode desktop executable")
     if not candidates[0].resolve().is_relative_to((stage / "extracted").resolve()):
         raise RuntimeError("Extracted desktop executable resolves outside the private stage")
+    entry_module = None
+    if args.installed_desktop:
+        spec = importlib.util.spec_from_file_location("hopnode_desktop_entry", Path(__file__).with_name("linux-desktop-entry.py"))
+        entry_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(entry_module)
+        report["installed_payload_sha256"] = entry_module.verify_installed_entry(args.installed_desktop, stage / "extracted")
+        report["gui_launch_method"] = "Gio.DesktopAppInfo installed desktop entry"
     shutil.copyfile(args.core, core_binary)
     core_binary.chmod(0o700)
     if unit:
@@ -219,7 +253,7 @@ try:
         raise RuntimeError("Headless CLI did not identify the independently started Core")
     report["checks"]["headless_cli_before_gui"] = "PASS"
     report["checks"]["uds_mode_0600"] = "PASS" if stat.S_IMODE((stage / "runtime/core.sock").stat().st_mode) == 0o600 else "FAIL"
-    gui = launch([str(candidates[0])], environment, "gui")
+    gui = launch_installed_gui(entry_module) if entry_module else launch([str(candidates[0])], environment, "gui")
     report["gui_pid"] = gui.pid
     report["core_pid"] = core_pid
     deadline = time.monotonic() + 30
