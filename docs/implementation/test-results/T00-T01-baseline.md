@@ -21,4 +21,8 @@
 
 Windows 真机：基础 CLI PASS；GUI/Service 待 P04。Ubuntu Desktop GUI 真机：NOT_RUN。Ubuntu Server 真机：NOT_RUN（只有 WSL ELF 冒烟）。MCP/跨网络：NOT_RUN，不能由上述检查替代。
 
-T00 完成；T01 待桌面工程与 Rust 检查；T02 待远端真实 CI；T03 缺完整平台、不同网络及隔离 Headscale/DERP。
+T00/T01 完成。后续桌面开发服务、前端 typecheck/lint/4 项 Vitest/build、Windows/Linux Rust fmt/clippy/test/build 均已真实通过，桌面与 IPC 证据见 `pocs/desktop-runtime.md` 与 `P04-linux-packaging-2026-10-19.md`。这些工程通过不表示产品完成。
+
+T02 首次 main CI 因桌面未集成失败；集成分支 `d0ad01e` 的真实 push CI 和 PR #1 CI 五项作业均 PASS：[push](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39194251571)、[PR](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39194599171)。新增 Linux deb 元数据 smoke check 的结果继续按最新提交复验，不沿用旧提交作为新提交通过证据。T03 仍缺完整平台、不同网络及隔离 Headscale/DERP。
+
+补充：`c2125fc` 的 [PR CI](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39195425895) 与 [push CI](https://github.com/HIHU-COCO/HOPNODE/actions/runs/39195422475) 均全部 PASS，包括真实构建 deb 后用 dpkg-deb 检查 GUI 包。T02 工程 CI 任务完成；这不等同 integration/release 后续任务完成。Native Windows Job POC 纳入 CI 后仍须等待相应提交的运行结果。

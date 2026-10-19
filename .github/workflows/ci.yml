@@ -43,6 +43,23 @@ jobs:
             test -f "$module" || continue
             (cd "$(dirname "$module")" && go test -race ./...)
           done
+      - name: Native Windows POC process ownership
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $taskCore = Join-Path $env:RUNNER_TEMP 'hopnode-p04-core.exe'
+          Push-Location tests/pocs/desktop-service
+          try {
+            go build -o $taskCore .
+            if ($LASTEXITCODE -ne 0) { throw 'POC Core build failed' }
+          } finally { Pop-Location }
+          $env:HOPNODE_POC_CORE_EXE = $taskCore
+          Push-Location tests/pocs/service-lifecycle
+          try {
+            go test -timeout 30s -count=1 -run '^TestOwnedChildNativeLifecycle$' -v ./...
+            if ($LASTEXITCODE -ne 0) { throw 'Native POC process ownership test failed' }
+          } finally { Pop-Location }
       - run: python scripts/verify-ledger.py
       - run: python -m unittest discover -s tests/pocs/network -p "test_*.py" -v
   desktop:

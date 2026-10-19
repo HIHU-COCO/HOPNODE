@@ -154,7 +154,7 @@ flowchart TD
 - **完成判据**：所有 18 项功能和 27 项验收编号进入台账，任何未知环境变量明确标注“尚未验证”。
 - **依赖**：无。**执行人**：总集成。
 
-### [ ] T01 — GitHub Monorepo 结构及本地开发环境
+### [x] T01 — GitHub Monorepo 结构及本地开发环境
 
 - **动作**：依据 Design 第 4 节建立并同步 `AGENTS.md`，新建 `docs/compatibility.md`，建立 `apps/desktop/`、`cmd/`、`internal/`、`contracts/`、`deployments/`、`packaging/`、`scripts/`、`tests/`、`docs/`；配置 pnpm workspace、Go module、Tauri 工程、`.editorconfig`、`.gitignore`、LICENSE 待决说明。
 - **要求**：不初始化第二个嵌套仓库；不提交密钥、`node_modules`、`target`、`dist`、真实设备数据；依赖以锁文件固定。
@@ -162,7 +162,7 @@ flowchart TD
 - **完成判据**：本机可执行前端开发服务、Go 构建、Rust 检查；基础命令可由 README 复现。
 - **依赖**：T00。**执行人**：总集成。
 
-### [ ] T02 — GitHub 协作与基础 CI
+### [x] T02 — GitHub 协作与基础 CI
 
 - **动作**：建立 `.github/workflows/ci.yml`、`integration.yml`、`release.yml` 的可验证初始版本；配置 GitHub Issue/PR 模板、分支保护建议和版本策略。
 - **规则**：普通 PR 跑静态检查、单测及跨平台编译烟测；网络实机测试仅在受保护、隔离环境手动触发；Release 不在普通 PR 上进行。

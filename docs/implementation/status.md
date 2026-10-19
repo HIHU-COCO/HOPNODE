@@ -9,14 +9,14 @@
 | ID | 状态 | 负责人 | 证据 / 阻塞 |
 | --- | --- | --- | --- |
 | T00 | DONE | HIHU-COCO / 集成 | test-environment.md、risks.md、完整 F/A 台账 |
-| T01 | IN_PROGRESS | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
-| T02 | IN_PROGRESS | HIHU-COCO / 集成 | 首次远端 CI 已触发；桌面工作树未集成导致失败，集成后复测 |
+| T01 | DONE | HIHU-COCO / 集成 | pnpm check/build、开发服务、Go build/test/vet、Windows/Linux Rust fmt/clippy/test/build PASS；见 test-results/T00-T01-baseline.md、pocs/desktop-runtime.md |
+| T02 | DONE | HIHU-COCO / 集成 | PR #1已真实触发CI；c2125fc的双平台Go/Rust、前端与Ubuntu deb smoke全部PASS，Actions run 39195425895；后续提交独立复验 |
 | T03 | BLOCKED | HIHU-COCO / 集成 | 已有 Windows + WSL22.04，缺完整真机矩阵、跨网和隔离部署 |
 | P01 | BLOCKED | HIHU-COCO / 集成 | 只读前置检查和4项单测PASS；缺隔离 Headscale/DERP 与不同网络端点；ADR-network.md |
-| P02 | IN_PROGRESS | ssh_poc / poc/ssh | 独立工作树隔离 SSH/SFTP POC；真机未提供 |
-| P03 | IN_PROGRESS | mcp_poc / poc/mcp | 官方 SDK stdio 进程测试；不改用户 Codex 配置 |
-| P04 | IN_PROGRESS | desktop_poc / poc/desktop | Tauri/IPC 实测；WSL 不替代 Desktop/Server 验收 |
-| P05 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
+| P02 | BLOCKED | ssh_finish / poc/ssh | Windows→隔离Ubuntu OpenSSH 命令/PTY/10MiB SFTP PASS；缺Windows sshd与跨平台长任务实测；tests/pocs/ssh/report.md |
+| P03 | IN_PROGRESS | mcp_finish / poc/mcp | 真实stdio工具/错误/取消与Linux race PASS；发现默认CLI认证可用，正以临时配置补Codex模型真调用；test-results/P03-mcp-2026-10-19.md |
+| P04 | BLOCKED | desktop_finish、mcp_finish / 集成 | Windows NSIS安装/内嵌GUI真实IPC/卸载PASS；WSL deb安装/desktop-entry启动/UDS/systemd PASS；缺SCM及完整平台/身份矩阵；见P04报告 |
+| P05 | BLOCKED | HIHU-COCO / 集成 | 已形成 ADR-0001-v1-stack.md 联合评审；跨网络/完整平台/真实Codex调用风险未关闭，G1未通过 |
 | K01 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K02 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
 | K03 | TODO | HIHU-COCO / 集成 | 依赖按 Plan 校验，尚未验收 |
@@ -130,6 +130,6 @@
 
 ## 检查点
 
-G0 未通过：CI 尚未在远端运行，T03 测试矩阵不齐。G1/G2 未通过：未冻结正式契约，六条业务线尚未启动。
+G0 未通过：已有远端 CI 成功记录，T03 测试矩阵仍不齐。G1/G2 未通过：POC 阻断风险未关闭，未冻结正式契约，六条业务线尚未启动。
 
 每项测试的命令、结果和范围写入 test-results/。Git commit 见 Git 历史；无 PR 时不得填写虚构链接。

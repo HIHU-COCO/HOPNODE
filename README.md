@@ -34,6 +34,10 @@ bash scripts/build-core.sh
 
 本阶段三个 Go 程序仅提供 `version` / `--version` / `--help`。其他命令返回 `FEATURE_NOT_IMPLEMENTED` 与非零码；它们不会安装服务、执行远程操作或伪造成功状态。隔离 POC 使用独立模块，执行方法见 `tests/pocs/*/README.md`。
 
+根 `go test ./...` 不包含独立模块。Windows 执行 `scripts/check-pocs.ps1`，Ubuntu 执行 `bash scripts/check-pocs.sh -race`，分别检查 SSH/MCP/本机 IPC/服务生命周期夹具。
+
+工程预览打包使用 `pnpm --dir apps/desktop tauri build --debug --bundles nsis`（Windows）或 `--bundles deb`（Ubuntu），Ubuntu 再用 `python3 tests/pocs/desktop-service/validate-deb.py <package.deb>` 检查包元数据与桌面入口。这些 debug 包只有诊断界面；Windows NSIS 安装/内嵌页面 IPC/卸载与 WSL deb 安装/启动/卸载证据见 [桌面记录](docs/implementation/test-results/pocs/desktop-runtime.md)、[Linux 记录](docs/implementation/test-results/P04-linux-packaging-2026-10-19.md)。
+
 ## 当前验证边界
 
 工程 CI 检查 Go、前端、Rust 和隔离 POC。真实网络集成与发布工作流设为手动门禁，在缺少驱动/验收时明确失败。不存在正式 Release。完整产品完成要求为 F01–F18、A01–A27 真实验证，并交付 Windows GUI/CLI/Service、Ubuntu GUI `.deb`、Ubuntu Core/CLI `.deb`。
