@@ -87,10 +87,20 @@ $prompt = 'Call only hopnode poc_probe in order: device_id=poc-local action=echo
 $prompt | codex -a never -c $mcpOverride -c project_doc_max_bytes=0 exec --ephemeral --json -s read-only --skip-git-repo-check --color never -C $emptyCwd - 1> (Join-Path $evidence 'stdout.raw.jsonl') 2> (Join-Path $evidence 'stderr.raw.txt')
 ```
 
-本次实测由隐藏 PowerShell 工作进程执行同一 CLI 参数，外层限制 180 秒并仅允许清理本次进程树。未使用 `--ignore-user-config`，保留现有 provider/auth；进程级整表 `mcp_servers` 覆盖只提供 `hopnode`。模型工作目录为空临时目录，`project_doc_max_bytes=0`，提示只允许三个夹具调用。调用前后仅计算 config/auth 文件哈希并比较相等，不向模型读取或输出文件内容。完整原始记录留在主树忽略目录 `.tools/artifacts/p03-codex-f3857df1da0a48c7849476ae1ef31d3d/`。
+本次实测由隐藏 PowerShell 工作进程执行同一 CLI 参数，外层限制 180 秒并仅允许清理本次进程树。未使用 `--ignore-user-config`，保留现有 provider/auth；通过进程参数提交 `mcp_servers={hopnode=...}` 配置。exec 事件仅证明未观察到其他 server 的工具调用，不能据此证明既有服务器未加载或未启动，也不能保证 app-server 的实际清单只有 hopnode。模型工作目录为空临时目录，`project_doc_max_bytes=0`，提示只允许三个夹具调用。调用前后仅计算 config/auth 文件哈希并比较相等，不向模型读取或输出文件内容。完整原始记录留在主树忽略目录 `.tools/artifacts/p03-codex-f3857df1da0a48c7849476ae1ef31d3d/`。
 
 首轮未声明只读元数据时，真实握手成功，但 echo 返回 `requires approval`，后续调用未运行。修正夹具真实元数据后第二轮 37 秒退出 0，echo marker 匹配、fail 含 `POC_EXPECTED_FAILURE`、status 返回 `active=0,canceled=0`，恰好三个 hopnode 调用，无其他工具事件。两轮 config/auth 哈希均未变。
 
 另一次受限 TTY 测试观察到 wait 调用后发送 Ctrl+C：会话退出 1、夹具/中继无残留，但未观察到取消通知或服务端取消标记。**这不能证明 Codex 协议取消**，该项仍未验收；SDK 取消测试 PASS 单独保留。A06/A24/A27 不能由本 POC 直接设为通过。
+
+## app-server 软中断实验：清单守卫阻断，未发模型轮次
+
+本轮使用显式执行的 Windows 临时标准库驱动，不接入现有桌面会话、daemon/proxy 或 app socket。使用新空 TEMP、ephemeral thread，提交 readOnly/never、关闭 shell/unified_exec/apps/multi_agent/web 的进程参数；模型前检查实际沙箱/审批与 MCP 清单，清单不符即拒绝发 turn/start。没有模型轮次，不能据参数本身声称所有能力开关均已实际生效。
+
+这不是“配置参数已保证只有 hopnode”的声明。2026-10-19 三次 app-server 启动均退出 1，**三次 `turn/start` 数都是 0，未发模型轮次**：初次驱动未识别已定义的 `remoteControl/status/changed` 通知；获准仅丢弃载荷后，第二次发现顶层 `-a never` 没有令 thread/start 的实际审批变成 never；显式设置 API 参数后，第三次确认 readOnly/never，但实际 MCP 清单含 1 个 hopnode 和 3 个既有服务器，因而在 turn/start 前停止。第三次只取得 hopnode `2025-06-18` 握手，未调用工具，不把握手算取消成功。三次 config/auth 前后哈希相同，已入 Job 的 activeProcesses=0；前两次使用本次 Job 的终止兜底。
+
+已定义的远程控制状态通知仅按方法名计数并丢弃整个载荷，不访问或输出 installationId/serverName/environmentId，不调用远程控制方法。其他服务器名称、认证状态和身份值不进入公共记录。原始记录只留主树忽略目录 `.tools/artifacts/p03-appserver-a0f250c73713442687589e30a84207f2/` 的 `run/`、`run2/`、`run3/`。当前阻塞是尚未证明 app-server 配置与运行清单能只包含本次 MCP；**客户端取消继续 NOT_RUN，不再重试扩大实验**。
+
+独立残留核查：进程 argv 含本轮唯一随机 artifact 标识的匹配数 0，ExecutablePath 精确等于本轮 fixture/relay 的匹配数 0，未停止任何进程。但驱动先 Popen 后 AssignProcessToJobObject，存在分配前已生成后代未被纳入 Job 的窗口；Job=0 与上述精确标识核查均不能证明所有潜在未归属后代退出。驱动和四项离线边界单测仅留上述 ignored 目录的 `experimental-driver-source/`，不作为可复用安全脚本提交。本轮仅归档事实文档，不引入新生产接口或公共测试入口。
 
 完整实测报告：[P03-mcp-2026-10-19.md](../../../docs/implementation/test-results/P03-mcp-2026-10-19.md)。技术结论：[ADR-codex-mcp.md](../../../docs/decisions/ADR-codex-mcp.md)。
