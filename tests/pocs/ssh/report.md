@@ -58,7 +58,25 @@ go run . -host 127.0.0.1 -port 22476 -user fixture `
 
 这证明 Windows Go 客户端到 Ubuntu 真实 OpenSSH 的指定私钥认证、命令、PTY 分配、中文/空格文件路径、目录列举、10 MiB 二进制往返和清理通过。它是同一 Windows 主机上的 WSL / chroot 回环测试，不是独立 Ubuntu Desktop / Server 安装或跨网络验收；尚无真实密码登录或后台任务生命周期结论。
 
-上述成功方法已整理为 [`openssh-fixture.sh`](openssh-fixture.sh) 的 prepare / run 流程，使用固定版本下载及唯一原生 chroot、独立账号文件与 devpts；停止和卸载步骤见 README，保留数据、不自动终止进程。新增脚本已实际通过 `bash -n`；非 root 执行返回错误；root 对正在使用的 22476 端口执行 prepare 被拒绝，并确认指定的新交换目录没有创建。尚未重新运行整合脚本的完整 prepare / run 流程，此项不计作新的一次 OpenSSH E2E。
+上述成功方法已整理为 [`openssh-fixture.sh`](openssh-fixture.sh) 的 prepare / run 流程，使用固定版本下载及唯一原生 chroot、独立账号文件与 devpts；停止和卸载步骤见 README，保留数据、不自动终止进程。脚本已实际通过 `bash -n`；非 root 执行返回错误；root 对正在使用的 22476 端口执行 prepare 被拒绝，并确认指定的新交换目录没有创建。
+
+### 整合脚本完整复现与清理
+
+2026-10-19 在 WSL Ubuntu 22.04 以 root 使用新交换目录 `<repo>/.tools/p02-repro` 和独立端口 `22477` 完整运行脚本，保留原 22476 夹具：
+
+```bash
+bash <worktree>/tests/pocs/ssh/openssh-fixture.sh prepare <repo>/.tools/p02-repro 22477
+bash <worktree>/tests/pocs/ssh/openssh-fixture.sh run <repo>/.tools/p02-repro
+```
+
+prepare 实际下载固定版本的两个包并成功校验 chroot 配置，退出码 0；唯一原生目录为 `/var/tmp/hopnode-p02-jail-eQoJy5uo`。run 实际启动前台 sshd。Windows Go 探针使用该新交换目录的客户端私钥、已独立核验的指纹和独立 known-hosts，执行 `-host 127.0.0.1 -port 22477 -user fixture -command whoami -pty -timeout 30s -round-trip-parent /workspace`，实际输出如下，退出码 0：
+
+```json
+{"stdout":"fixture\r\n","stderr":"","exit_code":0,"timed_out":false}
+{"sftp_round_trip":"PASS","bytes":10485760}
+```
+
+结束时确认 `/workspace` 为空，并核对新实例 PID `20583`、`/proc/PID/root`、`/proc/PID/exe` 和进程 starttime 均归属本次 chroot；经 pidfd 发送 SIGTERM，仅停止该已核验实例。前台进程退出码 0；再次检查该 chroot 已无进程后，验证专属挂载类型为 devpts 并成功正常卸载。最终 22477 无监听且该 devpts 无挂载，交换目录和 chroot 数据均保留，未递归删除任何目录。原 22476 夹具仍监听且其专属 devpts 仍挂载，未被本次清理触及。
 
 ## 真机 / 外部系统矩阵
 

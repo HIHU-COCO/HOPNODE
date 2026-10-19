@@ -54,7 +54,7 @@ findmnt --mountpoint "$task_jail/dev/pts"
 umount -- "$task_jail/dev/pts"
 ```
 
-若卸载提示 busy，保留现场并检查该夹具仍存活的子会话；不使用强制或 lazy unmount，也不根据进程名批量终止 sshd。准备失败时同样查看 `jail-path` 与 mount 状态。脚本已通过 `bash -n`，并实测拒绝非 root 运行及已有监听的端口；端口拒绝发生在创建交换目录前，确认未创建目标目录。原始方法的完整实测见报告；整合后脚本尚未再次启动完整夹具。
+若卸载提示 busy，保留现场并检查该夹具仍存活的子会话；不使用强制或 lazy unmount，也不根据进程名批量终止 sshd。准备失败时同样查看 `jail-path` 与 mount 状态。脚本已通过 `bash -n`，并实测拒绝非 root 运行及已有监听的端口；端口拒绝发生在创建交换目录前，确认未创建目标目录。整合脚本也已完成独立 22477 端口的 prepare → run → Windows PTY / 10 MiB 探针 → 安全停止及 devpts 卸载，详见报告。
 
 ## 已授权目标的真实探针
 
