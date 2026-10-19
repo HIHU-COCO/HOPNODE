@@ -39,20 +39,20 @@ func serverCommand(ctx context.Context) *exec.Cmd {
 }
 
 type lockedBuffer struct {
-	mu sync.Mutex
-	bytes.Buffer
+	mu     sync.Mutex
+	buffer bytes.Buffer // Do not embed: promoted ReadFrom would bypass Write's lock in io.Copy.
 }
 
 func (b *lockedBuffer) Write(p []byte) (int, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	return b.Buffer.Write(p)
+	return b.buffer.Write(p)
 }
 
 func (b *lockedBuffer) text() string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	return b.Buffer.String()
+	return b.buffer.String()
 }
 
 func TestSDKSubprocess(t *testing.T) {

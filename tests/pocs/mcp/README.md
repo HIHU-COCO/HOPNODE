@@ -35,6 +35,8 @@ go build -trimpath -o "$env:TEMP\hopnode-poc.exe" .
 
 `TestLegacyWireAndPureStdout` 通过原始 JSONL 客户端分别发起 `2024-11-05`、`2025-03-26`、`2025-06-18`、`2025-11-25` 初始化，验证协商回显、工具调用、无效参数的 `-32602`、所有 stdout 帧均为 JSON-RPC、EOF 后无多余输出并正常退出。这些客户端是测试夹具，不是对应版本的 Codex。
 
+在具备 C 工具链的 Linux 环境追加 `go test -race -count=1 -v ./...`。2026-10-19 的 WSL Ubuntu-22.04 复测 PASS；此前检测到的测试日志缓冲区 `ReadFrom` 锁绕过已修复。WSL 协议测试不替代 Ubuntu Desktop/Server 真机验收，完整失败及修复记录见测试报告。
+
 ## 隔离复现 Codex 注册
 
 使用独立临时 `CODEX_HOME`，保持用户现有 Codex 配置和认证文件原样；不复制已有凭据。先将本 POC 编译到新建临时目录，再在同一 PowerShell 会话执行：
