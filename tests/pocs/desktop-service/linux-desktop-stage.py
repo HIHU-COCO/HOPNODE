@@ -57,6 +57,7 @@ for name in ("runtime", "bin", "config", "data", "cache", "state", "extracted"):
 report = {"status": "FAIL", "uid": uid, "checks": {}, "cleanup": {}, "artifact_sha256": {key: hashlib.sha256(path.read_bytes()).hexdigest() for key, path in (("gui_deb", args.deb), ("core", args.core))}}
 processes = []
 streams = []
+group_cleanup = {}
 unit = "hopnode-p04-" + uuid.uuid4().hex + ".service" if args.user_unit else None
 unit_started = False
 manifest = {"uid": uid, "runner_pid": os.getpid(), "stage": str(stage), "process_groups": [], "transient_user_unit": unit}
@@ -111,23 +112,69 @@ def audit_events(gui_pid):
     return parsed
 
 
-def stop_owned(process):
-    # Each launched process has its own new session/group; never signal caller/user groups.
+def group_exists(group_id):
     try:
-        os.killpg(process.pid, signal.SIGTERM)
+        os.killpg(group_id, 0)
+        return True
     except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+
+
+def group_members(group_id):
+    members = []
+    for entry in Path("/proc").glob("[0-9]*/stat"):
+        try:
+            fields = entry.read_text().rpartition(")")[2].split()
+            if int(fields[2]) == group_id:
+                members.append({"pid": int(entry.parent.name), "uid": entry.parent.stat().st_uid, "session": int(fields[3]), "state": fields[0]})
+        except (FileNotFoundError, ProcessLookupError, PermissionError, ValueError, IndexError):
+            continue
+    return members
+
+
+def signal_owned_group(group_id, selected_signal):
+    members = group_members(group_id)
+    if not members:
+        if group_exists(group_id):
+            raise RuntimeError("Owned process group still exists but membership cannot be verified")
         return
+    if any(member["uid"] != uid or member["session"] != group_id for member in members):
+        raise RuntimeError("Refusing to signal a process group with unexpected UID/session")
+    try:
+        os.killpg(group_id, selected_signal)
+    except ProcessLookupError:
+        pass
+
+
+def wait_group_gone(group_id, seconds):
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if not group_exists(group_id) and not group_members(group_id):
+            return True
+        time.sleep(0.1)
+    return not group_exists(group_id) and not group_members(group_id)
+
+
+def stop_owned(process):
+    # New-session groups contain only this launch and its WebKit descendants.
+    group_id = process.pid
+    group_cleanup[str(group_id)] = {"gone": False}
+    signal_owned_group(group_id, signal.SIGTERM)
     if process.poll() is None:
         try:
             process.wait(timeout=8)
         except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
+            signal_owned_group(group_id, signal.SIGKILL)
             process.wait(timeout=5)
-    # A GUI leader may exit before its own WebKit children; close only that owned group.
-    try:
-        os.killpg(process.pid, signal.SIGKILL)
-    except ProcessLookupError:
-        pass
+    gone = wait_group_gone(group_id, 3)
+    if not gone:
+        signal_owned_group(group_id, signal.SIGKILL)
+        gone = wait_group_gone(group_id, 5)
+    group_cleanup[str(group_id)] = {"gone": gone, "remaining_states": sorted({member["state"] for member in group_members(group_id)})}
+    if not gone:
+        raise RuntimeError("Owned process group has remaining members; stage will be retained")
 
 
 def interrupted(signum, frame):
@@ -213,12 +260,26 @@ finally:
         except Exception as error:
             report["cleanup"]["process_error"] = type(error).__name__
     if unit_started:
-        stopped = run(["systemctl", "--user", "stop", unit])
-        report["cleanup"]["owned_user_unit_stopped"] = stopped.returncode == 0
+        try:
+            stopped = run(["systemctl", "--user", "stop", unit])
+            state_result = run(["systemctl", "--user", "show", unit, "-p", "MainPID", "-p", "ActiveState", "-p", "LoadState"])
+            unit_state = dict(line.split("=", 1) for line in state_result.stdout.splitlines() if "=" in line)
+            report["cleanup"]["user_unit_state"] = {key: unit_state.get(key, "") for key in ("MainPID", "ActiveState", "LoadState")}
+            report["cleanup"]["owned_user_unit_stopped"] = (unit_state.get("LoadState") == "not-found" and unit_state.get("MainPID", "0") == "0") or (unit_state.get("MainPID") == "0" and unit_state.get("ActiveState") in ("inactive", "failed"))
+        except Exception as error:
+            report["cleanup"]["owned_user_unit_stopped"] = False
+            report["cleanup"]["user_unit_error"] = type(error).__name__
+    report["cleanup"]["process_groups"] = group_cleanup
+    groups_gone = all(group_cleanup.get(str(process.pid), {}).get("gone") for process in processes)
+    report["cleanup"]["all_owned_process_groups_gone"] = groups_gone
+    safe_to_remove = groups_gone and report["cleanup"].get("owned_user_unit_stopped", True)
     for stream in streams:
         stream.close()
     for name in ("runtime", "bin", "config", "data", "cache", "state", "extracted"):
         target = stage / name
+        if not safe_to_remove:
+            report["cleanup"][name] = "RETAINED_UNVERIFIED_PROCESS"
+            continue
         # Delete only these script-created children of the canonical private stage.
         if target.is_symlink() or target.resolve().parent != stage.resolve():
             report["cleanup"][name] = "REFUSED"
