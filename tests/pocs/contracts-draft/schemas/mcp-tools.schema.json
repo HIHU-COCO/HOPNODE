@@ -1,0 +1,1013 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hopnode.invalid/draft/mcp-tools.schema.json",
+  "title": "DRAFT 26 MCP input candidates",
+  "$comment": "DRAFT by HIHU-COCO, 2026-10-19. Offline candidate {name,arguments}, not a live MCP transport/server or production Tool catalogue. Per-tool output models and limits remain TODO.",
+  "type": "object",
+  "required": [
+    "name",
+    "arguments"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "arguments": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "name": {
+          "const": "list_devices"
+        },
+        "arguments": {
+          "$ref": "#/$defs/list_devices"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "get_device"
+        },
+        "arguments": {
+          "$ref": "#/$defs/get_device"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "connect_device"
+        },
+        "arguments": {
+          "$ref": "#/$defs/connect_device"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "disconnect_device"
+        },
+        "arguments": {
+          "$ref": "#/$defs/disconnect_device"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "list_files"
+        },
+        "arguments": {
+          "$ref": "#/$defs/list_files"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "search_files"
+        },
+        "arguments": {
+          "$ref": "#/$defs/search_files"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "read_file"
+        },
+        "arguments": {
+          "$ref": "#/$defs/read_file"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "write_file"
+        },
+        "arguments": {
+          "$ref": "#/$defs/write_file"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "apply_patch"
+        },
+        "arguments": {
+          "$ref": "#/$defs/apply_patch"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "make_directory"
+        },
+        "arguments": {
+          "$ref": "#/$defs/make_directory"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "move_path"
+        },
+        "arguments": {
+          "$ref": "#/$defs/move_path"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "copy_path"
+        },
+        "arguments": {
+          "$ref": "#/$defs/copy_path"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "delete_path"
+        },
+        "arguments": {
+          "$ref": "#/$defs/delete_path"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "upload_file"
+        },
+        "arguments": {
+          "$ref": "#/$defs/upload_file"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "download_file"
+        },
+        "arguments": {
+          "$ref": "#/$defs/download_file"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "exec_command"
+        },
+        "arguments": {
+          "$ref": "#/$defs/exec_command"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "open_terminal"
+        },
+        "arguments": {
+          "$ref": "#/$defs/open_terminal"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "read_terminal"
+        },
+        "arguments": {
+          "$ref": "#/$defs/read_terminal"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "write_terminal"
+        },
+        "arguments": {
+          "$ref": "#/$defs/write_terminal"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "close_terminal"
+        },
+        "arguments": {
+          "$ref": "#/$defs/close_terminal"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "list_tasks"
+        },
+        "arguments": {
+          "$ref": "#/$defs/list_tasks"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "get_task"
+        },
+        "arguments": {
+          "$ref": "#/$defs/get_task"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "cancel_task"
+        },
+        "arguments": {
+          "$ref": "#/$defs/cancel_task"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "list_backups"
+        },
+        "arguments": {
+          "$ref": "#/$defs/list_backups"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "restore_backup"
+        },
+        "arguments": {
+          "$ref": "#/$defs/restore_backup"
+        }
+      }
+    },
+    {
+      "properties": {
+        "name": {
+          "const": "get_operation_history"
+        },
+        "arguments": {
+          "$ref": "#/$defs/get_operation_history"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "list_devices": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "manual_ssh",
+            "managed"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "get_device": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "connect_device": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "profile_ref": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "disconnect_device": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "session_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "list_files": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "device_id",
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "search_files": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recursive": {
+          "type": "boolean"
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "device_id",
+        "path",
+        "query"
+      ],
+      "additionalProperties": false
+    },
+    "read_file": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "encoding": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "device_id",
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "write_file": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {
+          "type": "string"
+        },
+        "encoding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "expected_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "backup": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "device_id",
+        "path",
+        "content",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "apply_patch": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "patch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "expected_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "backup": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "device_id",
+        "path",
+        "patch",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "make_directory": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recursive": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "path",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "move_path": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "backup": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "source_path",
+        "destination_path",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "copy_path": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "backup": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "source_path",
+        "destination_path",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "delete_path": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recursive": {
+          "type": "boolean"
+        },
+        "permanent": {
+          "type": "boolean"
+        },
+        "backup": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "path",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "upload_file": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "local_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remote_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "backup": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "local_path",
+        "remote_path",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "download_file": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "local_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remote_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "backup": {
+          "type": "boolean"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "local_path",
+        "remote_path",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "exec_command": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shell": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cwd": {
+          "type": "string",
+          "minLength": 1
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "run_mode": {
+          "enum": [
+            "foreground",
+            "background"
+          ]
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "command",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "open_terminal": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "shell": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cwd": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "read_terminal": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "session_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "device_id",
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "write_terminal": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "session_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "data": {
+          "type": "string"
+        },
+        "encoding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "session_id",
+        "data",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "close_terminal": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "session_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "list_tasks": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "canceled",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "get_task": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "task_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "output_offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "device_id",
+        "task_id"
+      ],
+      "additionalProperties": false
+    },
+    "cancel_task": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "task_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "task_id",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "list_backups": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "restore_backup": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "backup_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "target_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overwrite": {
+          "type": "boolean"
+        },
+        "expected_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id",
+        "backup_id",
+        "operation_id"
+      ],
+      "additionalProperties": false
+    },
+    "get_operation_history": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "page_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "operation_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        },
+        "task_id": {
+          "$ref": "core-api.schema.json#/$defs/ID"
+        }
+      },
+      "required": [
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "ToolResult": {
+      "$ref": "core-api.schema.json#/$defs/OperationResult"
+    }
+  }
+}

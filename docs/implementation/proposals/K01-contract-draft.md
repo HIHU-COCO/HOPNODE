@@ -2,7 +2,7 @@
 
 作者：HIHU-COCO。日期：2026-10-19（Asia/Shanghai）。状态：**DRAFT，仅供总集成评审；不是公共契约，不代表 K01/P05/G1 完成。**
 
-依据：[PRD V1.4](../../../PRD.md)、[Design V1.3](../../../Design.md)、[Plan V1.2](../../../Plan.md)、[AGENTS V1.0](../../../AGENTS.md)。核对主树 `5e7e07c` 的需求与证据；本文件不修改 `contracts/`，不实现业务模块。后续由总集成负责人决定并迁入 K01 产物。
+依据：[PRD V1.4](../../../PRD.md)、[Design V1.3](../../../Design.md)、[Plan V1.2](../../../Plan.md)、[AGENTS V1.0](../../../AGENTS.md)。初稿核对主树 `5e7e07c` 的需求与证据；后续局部候选 schema 验证见 §12。本文件不修改 `contracts/`，不实现业务模块。后续由总集成负责人决定并迁入 K01 产物。
 
 标记约定：**依据**表示原文已要求的业务语义或名字；**建议**表示本草案提出的字段、方法名或映射，尚未决定；**待决**表示不可当作既定实现的技术/身份/兼容边界。除 Design 明确写出的 `GetCapabilities`、`ListDevices`、MCP 名称及 Directory 草案路径外，下文 IPC 方法和事件名均为建议。即使来自 Design，其正式 wire schema 仍未冻结。
 
@@ -10,11 +10,11 @@
 
 Plan P05 的依赖原文是“P01–P04 有明确结果（通过或标明阻塞/失败及回退），不是要求全部技术风险都人为‘通过’”；G1 则要求“阻断后续开发的未决风险已关闭或有明确授权的替代路线”。Plan §10.2 对缺少 Ubuntu Desktop/Server 测试机明确允许“先完成 Linux 构建、CI、契约、帮助文档”，§9.1 同时要求“相关工作标 BLOCKED 并只推进可独立完成的工作”。因此可以完成评审记录及本草案/样例设计，不能据此宣布 G1 通过、冻结 K01 或越过 K01→K04 开始六条业务线。
 
-当前局部证据：P01 缺隔离 Headscale/DERP 和不同网络授权端点；P02 已有 Windows 客户端→隔离 Ubuntu OpenSSH 的命令/PTY/SFTP，仍缺 Windows sshd 和长任务完整矩阵；P04 已有真实 IPC、用户态 Job 生命周期及 WSL systemd，仍缺真实 Windows SCM 和完整 Desktop/Server/身份矩阵。P03 的 Windows Codex 0.153.4 已真实调用 echo/预期 fail/status，实际协议 `2025-06-18`；客户端协议取消未证实，不能以 SDK 取消替代。见 [P03 报告](../test-results/P03-mcp-2026-10-19.md)。
+当前局部证据：P01 缺隔离 Headscale/DERP 和不同网络授权端点；P02 已有 Windows 客户端→隔离 Ubuntu 与已授权独立 LAN Ubuntu 22.04 的命令/PTY/中文空格路径/10MiB SFTP 及清理 PASS，仍缺 Windows sshd、异常断线长任务及完整版本矩阵，见 [SSH 报告](../../../tests/pocs/ssh/report.md)。P04 已有真实 IPC、用户态 Job 生命周期、Windows 当前用户 NSIS 安装/内嵌前端/卸载和 WSL systemd；独立 Ubuntu Desktop 22.04 X11 暂存 GUI 显示/刷新/内核 peer PID 核验 UDS 及用户态 Core 生命周期共两轮 PASS（普通进程、transient user unit 各一轮），见 [桌面报告](../test-results/pocs/desktop-runtime.md)。这仍不覆盖 Windows SCM、独立 Ubuntu 的系统包安装、24.04/Server、注销重启和完整身份矩阵。P03 的 Windows Codex 0.153.4 已真实调用 echo/预期 fail/status，实际协议 `2025-06-18`；客户端协议取消未证实，不能以 SDK 取消替代，见 [P03 报告](../test-results/P03-mcp-2026-10-19.md)。
 
-必要的 P05 出口决策是按“下一开发步骤”判断哪些风险阻断契约、哪些仅阻断平台/正式验收，逐项记录负责人、允许施工范围、回退及复测条件。单机/WSL 证据没有替代正式验收；继续编写契约也不需要把这种替代虚构为已授权。现有 ADR-0001 中“缺真实 Codex 调用”的旧结论应由总集成更新，其“K01–K04 不冻结”不能扩张成禁止一切独立草案工作。
+必要的 P05 出口决策是按“下一开发步骤”判断哪些风险阻断契约、哪些仅阻断平台/正式验收，逐项记录负责人、允许施工范围、回退及复测条件。单机/WSL 证据没有替代正式验收；继续编写契约也不需要把这种替代虚构为已授权。初稿指出的“缺真实 Codex 调用”旧结论已由总集成按实证更新；当前 [ADR-0001](../../decisions/ADR-0001-v1-stack.md) 明确允许独立候选矩阵与机器验证，并保留 G1/K01 冻结门槛。
 
-| 未来 K01 产物 | 本文件提供的候选内容 | 本轮不做 |
+| 未来 K01 产物 | 本文件提供的候选内容 | 初稿文档轮次不做（后续见 §12） |
 | --- | --- | --- |
 | `contracts/ipc/core-api.schema.json` | 共用模型、抽象请求/结果、方法/事件和分页 | 决定 wire framing、发布兼容承诺、实现 controller |
 | `contracts/ipc/errors.schema.json` | 必需错误及建议扩展、未知结果/重试语义 | 将错误码包装成已经可用的能力 |
@@ -194,7 +194,7 @@ CLI 需要稳定非零退出类别（参数、连接、认证、权限、版本�
 | D07 大文件/分页/并发 | 有界流/分页候选、文件版本条件、备份范围 | K01 决定具体上限、cursor/stream 权限与生命周期；P02 验证各服务器能力；A25 阈值由 K04 审核 |
 | D08 Directory 部署/恢复 | HTTPS+设备身份的抽象约束、恢复证明与审计 | P01/K04：TLS/凭据格式、恢复/轮换、旧 token 拒绝、离线撤销策略；不引入个人账号或复杂审批平台 |
 
-## 11. 后续可执行验证清单（本轮均未执行）
+## 11. 完整验证清单（初稿文档轮次未执行；后续仅局部验证见 §12）
 
 - schema/OpenAPI 可由固定验证器读取，正例/反例及 Go/TypeScript 生成类型对齐；具体工具链由总集成固定。
 - 26 个 MCP 工具逐项包含确定目标（全局发现例外）及统一结果；跨 device/session/task/backup ID 混用必须失败；缺失目标/错误类型均有反例。
@@ -204,6 +204,17 @@ CLI 需要稳定非零退出类别（参数、连接、认证、权限、版本�
 - 身份反例包括不同用户/服务、未授权 IPC、已撤销设备、旧注册材料重放、停用后新请求；Windows Service 与 Ubuntu 正式平台另做实测，WSL/Mock 不替代。
 - 原始日志/事件/错误 details 的秘密隔离检查；失败、跳过、NOT_RUN 分别记录，所有正式 A01–A27 状态仍由独立验收台账管理。
 
-本轮文档核对：从 Design §9.3 表格提取的 26/26 工具名、§10.1 的 10/10 必需错误码均已覆盖；检查 Markdown 表格列数一致，`git diff --check` 通过。这是文档覆盖检查，不是 schema/实现的测试结果。
+初稿文档轮次核对：从 Design §9.3 表格提取的 26/26 工具名、§10.1 的 10/10 必需错误码均已覆盖；检查 Markdown 表格列数一致，`git diff --check` 通过。该轮仅为文档覆盖检查，不是 schema/实现的测试结果。
 
-本轮交付仅为此 DRAFT 文档。未运行 schema 验证、代码生成、平台 E2E 或网络验收；没有新增生产接口、冻结版本、业务实现或验收通过声明。P05/G1、K01 的最终状态由总集成按原 Plan 出口判据决定。
+初稿轮次仅交付此 DRAFT 文档，未运行 schema 验证、代码生成、平台 E2E 或网络验收；后续的局部候选机器验证另记于 §12。以上完整清单尚未全部执行。没有新增生产接口、冻结版本、业务实现或验收通过声明。P05/G1、K01 的最终状态由总集成按原 Plan 出口判据决定。
+
+## 12. 后续局部候选 schema 验证 — DRAFT
+
+独立 [contracts-draft POC](../../../tests/pocs/contracts-draft/README.md) 将少量共用模型、统一错误、六个抽象 CoreRequest 及 26 个 MCP 工具输入转成 JSON Schema 2020-12；仅解析嵌入静态数据，没有生产接口/服务或远程执行。实际结果见 [验证记录](../../../tests/pocs/contracts-draft/report.md)。
+
+- Windows Go 1.27.2 的 module 校验、测试（1.881s）、vet、build PASS；WSL Ubuntu-22.04 的 `go test -race -count=1 ./...` PASS（3.771s）。WSL 结果只证明 Linux schema 自动检查。
+- 35 个正反例（16 正例、19 反例）、26 个工具正常输入通过预期验证；25 个目标工具缺失/错类型/空值/camelCase 共 100 个反例被拒绝；12 个易重放候选工具缺 operation_id 被拒绝；10 个 Design 必需错误均可表达。
+- UNKNOWN_OUTCOME、取消接受/确认、manual/managed 身份来源和分页末页只验证候选结构声明的一致性，不证明实际执行/鉴权、结果查询、远端停止、cursor 绑定或幂等持久化。
+- Directory OpenAPI、完整 IPC/事件、逐工具 data 结果、Go/TS 类型生成、关系/运行时与兼容安全测试仍 TODO；§11 完整清单未全部执行。候选 ID 格式、manual network unknown 扩展、store 版本类型和其他约束仍待评审。
+
+后续局部机器验证 PASS 不构成 P05/G1 通过、K01 冻结、K02 或六条业务线启动许可；正式验收状态保持由总集成按原 Plan 独立判断。

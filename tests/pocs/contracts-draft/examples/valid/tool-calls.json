@@ -1,0 +1,217 @@
+[
+  {
+    "name": "list_devices",
+    "arguments": {
+      "page_size": 10,
+      "cursor": null
+    }
+  },
+  {
+    "name": "get_device",
+    "arguments": {
+      "device_id": "draft-device-001"
+    }
+  },
+  {
+    "name": "connect_device",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "timeout_ms": 1000
+    }
+  },
+  {
+    "name": "disconnect_device",
+    "arguments": {
+      "device_id": "draft-device-001"
+    }
+  },
+  {
+    "name": "list_files",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft",
+      "page_size": 10
+    }
+  },
+  {
+    "name": "search_files",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft",
+      "query": "*.txt",
+      "recursive": true
+    }
+  },
+  {
+    "name": "read_file",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft/file.txt",
+      "offset": 0,
+      "length": 16
+    }
+  },
+  {
+    "name": "write_file",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft/file.txt",
+      "content": "DRAFT fixture",
+      "operation_id": "draft-operation-001",
+      "backup": true
+    }
+  },
+  {
+    "name": "apply_patch",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft/file.txt",
+      "patch": "DRAFT synthetic patch",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "make_directory",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft/new",
+      "recursive": true,
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "move_path",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "source_path": "/draft/file.txt",
+      "destination_path": "/draft/other.txt",
+      "overwrite": false,
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "copy_path",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "source_path": "/draft/file.txt",
+      "destination_path": "/draft/other.txt",
+      "overwrite": false,
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "delete_path",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "path": "/draft/file.txt",
+      "permanent": false,
+      "backup": true,
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "upload_file",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "local_path": "/draft/local.txt",
+      "remote_path": "/draft/file.txt",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "download_file",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "local_path": "/draft/local.txt",
+      "remote_path": "/draft/file.txt",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "exec_command",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "command": "DRAFT_ONLY_NOT_EXECUTED",
+      "timeout_ms": 1000,
+      "run_mode": "foreground",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "open_terminal",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "rows": 24,
+      "columns": 80
+    }
+  },
+  {
+    "name": "read_terminal",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "session_id": "draft-session-001",
+      "offset": 0,
+      "max_bytes": 100
+    }
+  },
+  {
+    "name": "write_terminal",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "session_id": "draft-session-001",
+      "data": "DRAFT_ONLY",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "close_terminal",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "session_id": "draft-session-001"
+    }
+  },
+  {
+    "name": "list_tasks",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "page_size": 10
+    }
+  },
+  {
+    "name": "get_task",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "task_id": "draft-task-001"
+    }
+  },
+  {
+    "name": "cancel_task",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "task_id": "draft-task-001",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "list_backups",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "page_size": 10
+    }
+  },
+  {
+    "name": "restore_backup",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "backup_id": "draft-backup-001",
+      "operation_id": "draft-operation-001"
+    }
+  },
+  {
+    "name": "get_operation_history",
+    "arguments": {
+      "device_id": "draft-device-001",
+      "page_size": 10
+    }
+  }
+]
