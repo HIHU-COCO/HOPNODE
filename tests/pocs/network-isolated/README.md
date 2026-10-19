@@ -2,7 +2,9 @@
 
 日期：2026-10-19。任务：P01；关联 F02/F03/F04、A03/A04/A26 的前置研究。
 
-本目录只有方案和配置模板；没有启动 Headscale、DERP、tailscaled 或测试监听，没有连接授权目标，也没有修改现有网络。全部新实例实测为 **NOT_RUN**。P01 的跨网络要求和原 ADR 的阻塞结论保持不变。
+本目录包含 LAN 方案、配置模板及一个已在 WSL 普通用户下执行的 **localhost 协调端、单机共宿主** 执行器。TLS、两用户态节点注册、合成 TCP 与策略切换、网络层 expire/旧一次性 key 负例取得局部机制结果，详见 [单机报告](LOCALHOST-REPORT.md)。LAN 方案本身未执行，没有连接授权远端或修改现有网络配置；P01 的跨网络要求和原 ADR 的阻塞结论保持不变。
+
+单机执行入口是 `localhost_probe.py --execute-localhost-only`，代码拒绝 root。它创建原生 mode 700 临时目录、核验固定官方资产、最多执行 240 秒，并在 finally 用独立 30 秒清理预算核对自有子进程/候选端口。协调/TLS/管理/SOCKS/合成 HTTP 是 loopback；tailscaled 的 peer-discovery UDP 实际为通配监听，不能把参数名解释为所有 socket 都只绑定 loopback。不要在另一轮仍运行、端口占用或未授权的主机上执行。LAN 阶段仍需下面的 FQDN 与网络条件，单机 localhost 的结果不能替代它。
 
 ## 结论与推荐拓扑
 

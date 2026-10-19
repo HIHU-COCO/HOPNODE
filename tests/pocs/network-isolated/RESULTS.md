@@ -1,6 +1,6 @@
 # P01 独立实例证据表
 
-日期：2026-10-19。当前仅完成只读研究和模板准备，未执行本表环境测试。P01 整体、A03/A04/A25/A26 均未通过；共享状态与版本清单不由本目录更改。
+日期：2026-10-19。下表保留 **LAN 方案** 的执行状态；随后追加的单机 localhost 机制已取得局部结果，见 [单机报告](LOCALHOST-REPORT.md)。这两个范围分别记录，不能用同宿主结果覆盖 LAN/不同网络。P01 整体、A03/A04/A25/A26 均未通过；共享状态与版本清单不由本目录更改。
 
 | 检查 | 状态 | 证据 / 执行时应填字段 |
 | --- | --- | --- |
@@ -28,4 +28,4 @@
 
 原始日志/JSON/证书/state/数据库/认证材料仅位于运行时受保护目录，不复制到本目录。以后只提交必要的脱敏布尔、合成 marker、状态、耗时及实际日期。FAIL、NOT_RUN、BLOCKED 分别填写，不能将连通失败重新标为预期负例。
 
-本次静态检查实际结果：README 的 6 段 bash 代码仅经 WSL `bash -n` 语法检查，退出 0；两份 `.hujson` 是严格 JSON 子集，PowerShell `ConvertFrom-Json` 均通过；模板占位符清点恰为 ROOT/FQDN/IPV4 三项；`git diff --cached --check` 无输出、退出 0。未运行 Headscale `configtest` / `policy check`，未验证模板能实际启动，未下载或运行候选资产。这些静态结果不能替代上表任何运行结果。
+最初只读研究的静态检查：README 的 6 段 bash 代码仅经 WSL `bash -n` 语法检查，退出 0；两份 `.hujson` 是严格 JSON 子集，PowerShell `ConvertFrom-Json` 均通过；模板占位符清点恰为 ROOT/FQDN/IPV4 三项；`git diff --cached --check` 无输出、退出 0。随后单机运行实际下载、configtest、policy check 及运行结果单列于报告；LAN 模板仍未在独立主机间验证。
